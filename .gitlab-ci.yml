@@ -1,0 +1,123 @@
+stages:
+  - pre-check
+  - test
+
+# ------------------------------------------------------------------------------------------------------
+# WORKFLOW RULES (global rules for when a pipeline should be triggered or not)
+# ------------------------------------------------------------------------------------------------------
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"' # Run pipeline for merge request events.
+    - if: '$CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
+      when: never # Do not run pipeline on push if there are open merge requests for the branch.
+    - if: '$CI_COMMIT_BRANCH' # Run pipeline for any push to the default branch.
+# ------------------------------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------------------------------
+# WORKFLOW VARIABLES (global variables available for all jobs in the pipeline)
+# ------------------------------------------------------------------------------------------------------
+variables:
+  PIP_CACHE_DIR: '$CI_PROJECT_DIR/.cache/pip'
+  GIT_CLEAN_FLAGS: '-ffdx -e .cache/' # Ensure cache isn't deleted when the repository is cleaned.
+# ------------------------------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------------------------------
+# WORKFLOW DEFAULTS (default configurations to all jobs unless overridden in the job's own definition)
+# ------------------------------------------------------------------------------------------------------
+default:
+  cache:
+    - key: pip-cache
+      paths:
+        - .cache/pip
+# ------------------------------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------------------------------
+# Shared-CI-DangerJS (CI from external Gitlab repository)
+# ------------------------------------------------------------------------------------------------------
+include:
+  - project: espressif/shared-ci-dangerjs
+    ref: master
+    file: danger.yaml
+run-danger-mr-linter:
+  stage: pre-check
+# ------------------------------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------------------------------
+# Pre-commit MR
+# ------------------------------------------------------------------------------------------------------
+pre-commit-mr:
+  stage: pre-check
+  needs: []
+  image: python:3.11-alpine3.18
+  variables:
+    SKIP: pip-compile
+  before_script:
+    - apk add git
+    - pip install pre-commit
+  script:
+    - echo "Merge request is from ${CI_COMMIT_REF_NAME} into ${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}"
+    - git fetch origin ${CI_MERGE_REQUEST_TARGET_BRANCH_NAME} ${CI_COMMIT_REF_NAME}
+    - export from_sha=$(git merge-base HEAD origin/${CI_MERGE_REQUEST_TARGET_BRANCH_NAME})
+    - echo "Checking changes from ${from_sha} to ${CI_COMMIT_SHA}:"
+    - git log --oneline ${from_sha}..${CI_COMMIT_SHA}
+    - echo "Modified files:"
+    - git diff-tree --no-commit-id --name-only -r ${from_sha} ${CI_COMMIT_SHA}
+    - echo "Running pre-commit:"
+    - pre-commit run --from ${from_sha} --to ${CI_COMMIT_SHA}
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+  tags:
+    - build
+    - internet
+# ------------------------------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------------------------------
+# Pytest tests
+# ------------------------------------------------------------------------------------------------------
+codebase-tests:
+  stage: test
+  image: python:3.11
+  needs: [] # Do not wait for previous stages
+  before_script:
+    - pip install -e '.[test]'
+  script:
+    - pytest --junitxml=reports/junit.xml --cov=esp_gpio_tool --cov-report=term --cov-report xml:reports/coverage.xml
+  coverage: '/TOTAL.*\s+(\d+)\%/'
+  artifacts:
+    paths:
+      - reports/
+      - '.coverage*'
+    reports:
+      junit: reports/junit.xml
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+  tags:
+    - host_test
+# -------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------------------------------
+# Code quality
+# ------------------------------------------------------------------------------------------------------
+codebase-quality:
+  stage: test
+  image: python:3.11-alpine3.18
+  needs: [] # Do not wait for previous stages
+  before_script:
+    - apk add git
+    - pip install -e '.[ci-quality]'
+  script:
+    - pylint esp_gpio_tool/**/*.py --exit-zero --load-plugins=pylint_gitlab --output-format=gitlab-codeclimate > gl-codequality.json
+  artifacts:
+    paths:
+      - gl-codequality.json
+    reports:
+      codequality: gl-codequality.json
+    expire_in: 1 week
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+  tags:
+    - host_test
+  allow_failure: true
+# -------------------------------------------------------------------------
