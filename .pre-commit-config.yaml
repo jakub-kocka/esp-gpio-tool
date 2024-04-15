@@ -50,6 +50,12 @@ repos:
         args: ["--write-changes"]
         additional_dependencies: [tomli]
 
+  - repo: https://github.com/espressif/check-copyright/
+    rev: v1.0.3
+    hooks:
+      - id: check-copyright
+        args: ['--config', 'check_copyright_config.yaml']
+
   # Local hooks
   - repo: local
     hooks:
