@@ -14,7 +14,9 @@
     readme = "README.md"
     requires-python = ">=3.11"
 
-    dependencies = []
+    dependencies = [
+        "pyyaml",
+    ]
 
 
     [project.optional-dependencies]
@@ -59,6 +61,7 @@
         ]
     [tool.pylint.'FORMAT']
         max-line-length = 120 # Specifies the maximum line length for pylint checks
+        max-args = 8          # Specifies the maximum number of arguments for functions
 
 [tool.ruff]
     line-length    = 120                                                    # Specifies the maximum line length for ruff checks
@@ -76,6 +79,7 @@
     python_version           = "3.11"                              # Specifies the Python version used to parse and check the target program
     warn_no_return           = true                                # Shows errors for missing return statements on some execution paths
     warn_return_any          = true                                # Shows a warning when returning a value with type Any from a function declared with a non- Any return type
+    no_implicit_optional     = false
 
 [tool.commitizen]
     version                    = "0.0.0"
