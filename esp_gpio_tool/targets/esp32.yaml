@@ -1,0 +1,115 @@
+peripheral:
+  ADC:
+    count: 2
+    channels: 10
+    assigned_pins: [ "ADC{count}_CH{{channel}}" ]
+  DAC:
+    count: 2
+    assigned_pins: [ "DAC_{count}" ]
+  UART:
+    count: 3
+    assigned_pins: [ "U{count}TXD", "U{count}RXD", "U{count}CTS", "U{count}RTS" ]
+  RTC:
+    count: 17
+    assigned_pins: [ "RTC_GPIO{count}" ]
+  JTAG:
+    count: 1
+    assigned_pins: [ MTCK, MTDO, MTMS, MTDI ]
+    warning: "JTAG assigned_pins are shared with GPIO assigned_pins"  # TODO: move warning text to python code?
+  TOUCH:
+    count: 10
+    assigned_pins: [ "TOUCH{count}" ]
+  EMAC:
+    count: 1
+    modes: [ RMII, MII ]
+    # MII: TX_CLK, RX_CLK, TX_EN, TXD0, TXD1, TXD2, TXD3, RX_ER, RX_DV, RXD0, RXD1, RXD2, RXD3, TX_ER
+    # RMII: TX_CLK, TX_EN, TXD0, TXD1, RX_DV, RXD0, RXD1
+    assigned_pins: [ EMAC_TX_CLK, EMAC_RX_CLK, EMAC_TX_EN, EMAC_TXD0, EMAC_TXD1, EMAC_TXD2, EMAC_TXD3, EMAC_RX_ER, EMAC_RX_DV, EMAC_RXD0, EMAC_RXD1, EMAC_RXD2, EMAC_RXD3, EMAC_CLK_OUT, EMAC_CLK_OUT_180, EMAC_TX_ER ]
+    any_pins: [ EMAC_MDC_out, EMAC_MDI_in, EMAC_MDO_out, EMAC_CRS_out, EMAC_COL_out]
+  I2C:
+    count: 2
+    any_pins: [ "I2C{count}_SCL", "I2C{count}_SDA" ]
+  I2S:
+    count: 2
+    any_pins: ["I2S{count}_WS", "I2S{count}SD"]
+    assigned_pins: [ CLK_OUT* ] # Note: one CLK_OUT* per I2S
+  SPI:
+    # SPI0 uses the same pins as SPI1 so actual count is 3
+    count: 3 # SPI0, SPI1, SPI2 (HSPI), SPI3 (VSPI)
+    subname: [ SPI, HSPI, VSPI ]
+    modes: [ Three-line SPI, Four-line SPI, QSPI ]
+    # Note: D -> MOSI, Q -> MISO, WP -> CLK, CS0 -> CS
+    assigned_pins: [ "{subname}HD", "{subname}WP", "{subname}CS0", "{subname}CLK", "{subname}Q", "{subname}D" ]
+    warning: {SPI: "SPI0 and SPI1 share the same SPI bus (same signals and IOs) and are used for connecting off-package flash and PSRAM"}
+  SDMMC:
+    count: 2
+    data_width: {1: [1, 4, 8], 2: [1, 4]}
+    assigned_pins: [ "HS{count}_CLK", "HS{count}_CMD", "HS{count}_DATA{{data_width}}" ]
+    any_pins: [card_detect_n, card_write_prt]  # optional card detect and write protect pins
+  SDIO:
+    count: 2
+    assigned_pins: [ "SD{count}_CLK", "SD{count}_CMD", "SD{count}_DATA{{data_width}}"]
+    data_width: {1: [1, 4], 2: [1, 4]}
+    # internal flash, depending on the module, see. 2.5 Pin Mapping Between Chip and Flash/PSRAM of ESP32 Datasheet
+    warning: {0: "assigned_pins may be used for connecting in-package flash"}
+  CLK_OUT:
+    count: 3
+    assigned_pins: [ "CLK_OUT{count}" ]
+  RMT:
+    count: 8
+    any_pins: [ "RMT_SIG_IN{count}", "RMT_SIG_OUT{count}" ]
+  MCPWM:  # Motor Control PWM
+    count: 3
+    any_pins: [ "SYNC{count}", "FAULT{count}", "CAP{count}", "PWM{count}A", "PWM{count}B" ]
+  LEDC:  # LED PWM
+    count: 8
+    any_pins: [ "LEDC_SIG_OUT{count}" ]
+  TWAI:
+    count: 1
+    any_pins: [ twai_rx, twai_tx, twai_bus_off_on, twai_clkout ]
+  PCNT:  # Pulse Counter
+    count: 8
+    channels: 2
+    any_pins: [ "PCNT_SIG_CH{{channel}}_IN{count}", "PCNT_CTRL_CH{{channel}}_IN{count}" ]
+  XTAL_32K:  # external 32K crystal oscillator
+    count: 1
+    assigned_pins: [ 32K_XP, 32K_XN ]
+
+memory:
+  ["In-Package Flash", "Off-Package Flash", "PSRAM"]
+
+gpio:
+  0:  { functions: [ ADC2_CH1, RTC_GPIO11, TOUCH1, EMAC_TX_CLK, CLK_OUT1 ], strapping: "High for SPI Boot; Low for Download Mode" }
+  1:  { functions: [ U0TXD, EMAC_RXD2, CLK_OUT3 ]}
+  2:  { functions: [ ADC2_CH2, RTC_GPIO12, TOUCH2, HSPIWP, HS2_DATA0, SD1_DATA0 ], strapping: "Low for Download Mode" }
+  3:  { functions: [ U0RXD, CLK_OUT2 ]}
+  4:  { functions: [ ADC2_CH0, RTC_GPIO10, TOUCH0, EMAC_TX_ER, HSPIHD, HS2_DATA1, SD1_DATA1 ]}
+  5:  { functions: [ HS1_DATA6, EMAC_RX_CLK, VSPICS0 ], strapping: "SDIO Slave timing adjustment" }
+  6:  { functions: [ HS1_CLK, U1CTS, SD0_CLK, SPICLK ], reserved: ["In-Package Flash", "PSRAM", "Off-Package Flash"]}
+  7:  { functions: [ HS1_DATA0, U2RTS, SD0_DATA0, SPIQ ], reserved: ["In-Package Flash", "PSRAM", "Off-Package Flash"]}
+  8:  { functions: [ HS1_DATA1, U2CTS, SD0_DATA1, SPID ], reserved: ["In-Package Flash", "PSRAM", "Off-Package Flash"]}
+  9:  { functions: [ HS1_DATA2, U1RXD, SD0_DATA2, SPIHD ], reserved: ["PSRAM", "Off-Package Flash"]}
+  10: { functions: [ HS1_DATA3, U1TXD, SD0_DATA3, SPIWP ], reserved: ["PSRAM", "Off-Package Flash"]}
+  11: { functions: [ HS1_CMD, U1RTS, SD0_CMD, SPICS0 ], reserved: ["In-Package Flash", "Off-Package Flash"]}
+  12: { functions: [ ADC2_CH5, RTC_GPIO15, MTDI, TOUCH5, EMAC_TXD3, HSPIQ, HS2_DATA2, SD1_DATA2 ], strapping: "Voltage of Internal LDO" }
+  13: { functions: [ ADC2_CH4, RTC_GPIO14, MTCK, TOUCH4, EMAC_RX_ER, HSPID, HS2_DATA3, SD1_DATA3 ]}
+  14: { functions: [ ADC2_CH6, RTC_GPIO16, MTMS, TOUCH6, EMAC_TXD2, HSPICLK, HS2_CLK, SD1_CLK ]}
+  15: { functions: [ ADC2_CH3, RTC_GPIO13, MTDO, TOUCH3, EMAC_RXD3, HSPICS0, HS2_CMD, SD1_CMD ], strapping: "Toggle for Debugging Log over UART0" }
+  16: { functions: [ HS1_DATA4, U2RXD, EMAC_CLK_OUT ], reserved: ["In-Package Flash", "PSRAM"]}
+  17: { functions: [ HS1_DATA5, U2TXD, EMAC_CLK_OUT_180 ], reserved: ["In-Package Flash"]}
+  18: { functions: [ HS1_DATA7, VSPICLK ]}
+  19: { functions: [ U0CTS, EMAC_TXD0, VSPIQ ]}
+  21: { functions: [ EMAC_TX_EN, VSPIHD ]}
+  22: { functions: [ U0RTS, EMAC_TXD1, VSPIWP ]}
+  23: { functions: [ HS1_STROBE, VSPID ]}
+  25: { functions: [ ADC2_CH8, RTC_GPIO6, DAC_1, EMAC_RXD0 ]}
+  26: { functions: [ ADC2_CH9, RTC_GPIO7, DAC_2, EMAC_RXD1 ]}
+  27: { functions: [ ADC2_CH7, RTC_GPIO17, TOUCH7. EMAC_RX_DV ]}
+  32: { functions: [ ADC1_CH4, RTC_GPIO9, TOUCH9, 32K_XP ]}
+  33: { functions: [ ADC1_CH5, RTC_GPIO8, TOUCH8, 32K_XN ]}
+  34: { functions: [ ADC1_CH6, RTC_GPIO4 ], is_output: false }
+  35: { functions: [ ADC1_CH7, RTC_GPIO5 ], is_output: false }
+  36: { functions: [ ADC1_CH0, RTC_GPIO0 ], is_output: false }
+  37: { functions: [ ADC1_CH1, RTC_GPIO1 ], is_output: false }
+  38: { functions: [ ADC1_CH2, RTC_GPIO2 ], is_output: false }
+  39: { functions: [ ADC1_CH3, RTC_GPIO3 ], is_output: false }
