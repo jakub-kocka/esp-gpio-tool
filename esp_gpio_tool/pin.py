@@ -35,3 +35,19 @@ class Pin:
 
     def __repr__(self) -> str:
         return str(self)
+
+    def assign_function(self, function: str) -> list[str]:
+        output = []
+        if self.used:
+            raise ValueError(f'Pin {self.pin} already assigned to {self.assigned_function}')
+        if function == 'INPUT' and not self.is_input:
+            raise ValueError(f'Pin {self.pin} does not support input')
+        if function == 'OUTPUT' and not self.is_output:
+            raise ValueError(f'Pin {self.pin} does not support output')
+        self.assigned_function = function
+        if self.strapping:
+            output.append(
+                f'Warning: Pin {self.pin} is reserved for strapping, use with caution! '
+                f'Strapping function: {self.strapping}'
+            )
+        return output

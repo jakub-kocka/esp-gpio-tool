@@ -25,14 +25,14 @@ peripheral:
     # MII: TX_CLK, RX_CLK, TX_EN, TXD0, TXD1, TXD2, TXD3, RX_ER, RX_DV, RXD0, RXD1, RXD2, RXD3, TX_ER
     # RMII: TX_CLK, TX_EN, TXD0, TXD1, RX_DV, RXD0, RXD1
     assigned_pins: [ EMAC_TX_CLK, EMAC_RX_CLK, EMAC_TX_EN, EMAC_TXD0, EMAC_TXD1, EMAC_TXD2, EMAC_TXD3, EMAC_RX_ER, EMAC_RX_DV, EMAC_RXD0, EMAC_RXD1, EMAC_RXD2, EMAC_RXD3, EMAC_CLK_OUT, EMAC_CLK_OUT_180, EMAC_TX_ER ]
-    any_pins: [ EMAC_MDC_out, EMAC_MDI_in, EMAC_MDO_out, EMAC_CRS_out, EMAC_COL_out]
+    universal_pins: [ EMAC_MDC_out, EMAC_MDI_in, EMAC_MDO_out, EMAC_CRS_out, EMAC_COL_out]
   I2C:
     count: 2
-    any_pins: [ "I2C{count}_SCL", "I2C{count}_SDA" ]
+    universal_pins: [ "I2C{count}_SCL", "I2C{count}_SDA" ]
   I2S:
     count: 2
-    any_pins: ["I2S{count}_WS", "I2S{count}SD"]
-    assigned_pins: [ CLK_OUT* ] # Note: one CLK_OUT* per I2S
+    universal_pins: ["I2S{count}_WS", "I2S{count}_SD"]
+    assigned_pins: [ "I2S{count}_CLK" ] # Note: I2S_CLK has to be from CLK_OUT* pins
   SPI:
     # SPI0 uses the same pins as SPI1 so actual count is 3
     count: 3 # SPI0, SPI1, SPI2 (HSPI), SPI3 (VSPI)
@@ -45,7 +45,7 @@ peripheral:
     count: 2
     data_width: {1: [1, 4, 8], 2: [1, 4]}
     assigned_pins: [ "HS{count}_CLK", "HS{count}_CMD", "HS{count}_DATA{{data_width}}" ]
-    any_pins: [card_detect_n, card_write_prt]  # optional card detect and write protect pins
+    universal_pins: [card_detect_n, card_write_prt]  # optional card detect and write protect pins
   SDIO:
     count: 2
     assigned_pins: [ "SD{count}_CLK", "SD{count}_CMD", "SD{count}_DATA{{data_width}}"]
@@ -57,20 +57,20 @@ peripheral:
     assigned_pins: [ "CLK_OUT{count}" ]
   RMT:
     count: 8
-    any_pins: [ "RMT_SIG_IN{count}", "RMT_SIG_OUT{count}" ]
+    universal_pins: [ "RMT_SIG_IN{count}", "RMT_SIG_OUT{count}" ]
   MCPWM:  # Motor Control PWM
     count: 3
-    any_pins: [ "SYNC{count}", "FAULT{count}", "CAP{count}", "PWM{count}A", "PWM{count}B" ]
+    universal_pins: [ "SYNC{count}", "FAULT{count}", "CAP{count}", "PWM{count}A", "PWM{count}B" ]
   LEDC:  # LED PWM
     count: 8
-    any_pins: [ "LEDC_SIG_OUT{count}" ]
+    universal_pins: [ "LEDC_SIG_OUT{count}" ]
   TWAI:
     count: 1
-    any_pins: [ twai_rx, twai_tx, twai_bus_off_on, twai_clkout ]
+    universal_pins: [ twai_rx, twai_tx, twai_bus_off_on, twai_clkout ]
   PCNT:  # Pulse Counter
     count: 8
     channels: 2
-    any_pins: [ "PCNT_SIG_CH{{channel}}_IN{count}", "PCNT_CTRL_CH{{channel}}_IN{count}" ]
+    universal_pins: [ "PCNT_SIG_CH{{channel}}_IN{count}", "PCNT_CTRL_CH{{channel}}_IN{count}" ]
   XTAL_32K:  # external 32K crystal oscillator
     count: 1
     assigned_pins: [ 32K_XP, 32K_XN ]

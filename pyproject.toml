@@ -58,6 +58,7 @@
             "too-many-return-statements",    # R0911: Too many return statements
             "too-many-statements",           # R0915: Too many statements
             "ungrouped-imports",             # C0412: Imports should be grouped by packages
+            "too-many-instance-attributes",  # R0902: Too many instance attributes
         ]
     [tool.pylint.'FORMAT']
         max-line-length = 120 # Specifies the maximum line length for pylint checks
