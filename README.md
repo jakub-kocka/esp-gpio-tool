@@ -50,7 +50,34 @@ It offers GPIO-related tools.
 
 ## Documentation
 
-TBD
+ESP GPIO tool currently supports checking of pin assignment for ESP32 using CLI.
+
+### GPIO Assignment Checker
+
+The tool will check your pin assignment for completeness, correctness and potential collisions with pre-defined perfipherals for debugging etc.
+
+Example:
+
+```sh
+python -m esp_gpio_tool check myconfig.yaml
+```
+
+For details regarding the format of the input file please refer to the Input file section.
+
+#### Input File
+
+The input file is expected to be in the YAML format. The file is expected to have a `chip` keyword in the header of the file. Without this header, the tool will assume the configuration file is for ESP32.
+
+The body of the file should contain your assignment of the GPIOs. A pin number is used as a key and a function as a value. Duplicated items are not allowed and will result in errors.
+
+Example:
+
+```yaml
+chip: esp32
+
+0: TOUCH0
+```
+
 
 ---
 
