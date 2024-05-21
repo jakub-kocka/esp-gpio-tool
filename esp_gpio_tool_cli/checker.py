@@ -5,8 +5,8 @@ from typing import Hashable
 
 import yaml
 
-from esp_gpio_tool.chip import ESP
-from esp_gpio_tool.chip import SUPPORTED_CHIPS
+from esp_gpio_tool_cli.chip import ESP
+from esp_gpio_tool_cli.chip import SUPPORTED_CHIPS
 
 
 # Create a custom YAML loader that checks for duplicate keys
@@ -30,9 +30,12 @@ def load_user_input(input_string: str) -> dict[str, str]:
         raise SystemExit(f'Error: Invalid format: {err}') from err
 
 
-def run_check(user_input: str) -> list[str]:
+def run_check(user_input: str | dict) -> list[str]:
     output = []
-    data = load_user_input(user_input)
+    if isinstance(user_input, str):
+        data = load_user_input(user_input)
+    else:
+        data = user_input
     # get the chip name and verify if it is supported
     if 'chip' not in data.keys():
         output.append('Warning: Chip name not found in input file. Assuming ESP32.')

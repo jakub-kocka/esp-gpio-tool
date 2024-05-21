@@ -3,7 +3,7 @@
 import re
 from typing import Any
 
-from esp_gpio_tool.pin import Pin
+from esp_gpio_tool_cli.pin import Pin
 
 
 class BasePeripheral:
