@@ -63,7 +63,6 @@
         ]
     [tool.pylint.'FORMAT']
         max-line-length = 120 # Specifies the maximum line length for pylint checks
-        max-args = 8          # Specifies the maximum number of arguments for functions
 
 [tool.ruff]
     line-length    = 120                                                    # Specifies the maximum line length for ruff checks

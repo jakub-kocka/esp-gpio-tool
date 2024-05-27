@@ -98,7 +98,7 @@ def test_output_notsupported() -> None:
     36: OUTPUT
     """
     out = run(config)
-    assert 'Error: Pin 36 does not support output' in out
+    assert 'Error: Pin 36 does not support output mode.' in out
 
 
 def test_I2S_clk() -> None:

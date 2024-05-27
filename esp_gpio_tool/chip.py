@@ -26,6 +26,9 @@ def load_config(target: str) -> dict[str, dict]:
 class ESP:
     gpios: dict[int, Pin]
     peripherals: list[BasePeripheral]
+    memory: (
+        str | None
+    )  # TODO: add option to pick memory type of the chip, and disable selected pins based on the selection
 
     def __init__(self, name: str) -> None:
         self.name = name
