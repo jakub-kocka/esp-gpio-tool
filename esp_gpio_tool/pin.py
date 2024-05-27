@@ -48,8 +48,8 @@ class Pin:
             )
 
         # Notes about pull-up/down resistors
-        if self.at_reset == 'wpu':
+        if self.at_reset == 'PUP':
             output.append(f'Note: Pin {self.pin} has an internal pull-up resistor enabled at reset.')
-        elif self.at_reset == 'wpd':
+        elif self.at_reset == 'PDOWN':
             output.append(f'Note: Pin {self.pin} has an internal pull-down resistor enabled at reset.')
         return output

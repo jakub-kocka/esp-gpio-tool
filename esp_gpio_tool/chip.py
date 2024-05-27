@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
 # SPDX-License-Identifier: Apache-2.0
 import os
+import re
 import sys
 
 import yaml
@@ -63,12 +64,19 @@ class ESP:
         """Load peripherals from config"""
         self.peripherals = [self._str_to_class(peri)(**data) for peri, data in self.config['peripheral'].items()]
 
+    def get_peripheral(self, name: str) -> BasePeripheral:
+        """Return peripheral with the given name"""
+        for peripheral in self.peripherals:
+            if peripheral.name == name:
+                return peripheral
+        raise ValueError(f'Peripheral {name} not found in peripherals for {self.name}.')
+
     def get_peripheral_from_function(self, function: str) -> BasePeripheral:
         """Return peripheral that uses the function"""
         for peripheral in self.peripherals:
-            if function.startswith(peripheral.common_prefix):
+            if re.match(rf'^{peripheral.common_prefix}', function):
                 return peripheral
-        raise ValueError(f'Function {function} not found in peripherals for {self.name}')
+        raise ValueError(f'Function {function} not found in peripherals for {self.name}.')
 
     def check(self) -> list[str]:
         """Check if required pins by each used peripheral are assigned"""
@@ -84,6 +92,6 @@ class ESP:
                     else:
                         out.append(
                             f'Error: Required function {function} from peripheral {peripheral.name} '
-                            'not assigned to any pin'
+                            'is not assigned to any pin.'
                         )
         return out

@@ -62,7 +62,7 @@ def test_invalid_pin_format() -> None:
     0: INVALID_FUNCTION
     """
     out = run(config)
-    assert 'Error: Function INVALID_FUNCTION not found in peripherals for esp32' in out
+    assert 'Error: Function INVALID_FUNCTION not found in peripherals for esp32.' in out
 
 
 def test_wrong_pin_function() -> None:
@@ -71,7 +71,7 @@ def test_wrong_pin_function() -> None:
     0: ADC1_CH0
     """
     out = run(config)
-    assert 'Error: Pin 0 does not support function ADC1_CH0' in out
+    assert 'Error: Pin 0 does not support function ADC1_CH0.' in out
 
 
 def test_nonexisting_pin() -> None:
@@ -80,7 +80,7 @@ def test_nonexisting_pin() -> None:
     24: ADC1_CH0
     """
     out = run(config)
-    assert 'Error: Pin 24 not found for esp32' in out
+    assert 'Error: Pin 24 not found for esp32.' in out
 
 
 def test_wrong_function_correct_prefix() -> None:
@@ -89,7 +89,7 @@ def test_wrong_function_correct_prefix() -> None:
     36: ADC1_FOO
     """
     out = run(config)
-    assert 'Error: Function ADC1_FOO not found in peripheral ADC' in out
+    assert 'Error: Function ADC1_FOO not found in peripheral ADC.' in out
 
 
 def test_output_notsupported() -> None:
@@ -109,4 +109,60 @@ def test_I2S_clk() -> None:
     23: I2S0_SD
     """
     out = run(config)
-    assert 'Error: Pin 21 does not support CLK_OUT, which is required for I2S0_CLK' in out
+    assert 'Error: Pin 21 does not support CLK_OUT, which is required for I2S0_CLK.' in out
+
+
+def test_SPI_modes() -> None:
+    config = """
+    chip: esp32
+
+    peripheral:
+        SPI:
+            HSPI: QSPI
+
+    2:  HSPIWP
+    4:  HSPIHD
+    12: HSPIQ
+    13: HSPID
+    14: HSPICLK
+    15: HSPICS0
+    """
+    out = run(config)
+    assert 'Error' not in out
+
+
+@pytest.mark.parametrize('mode', ['1', '4'])
+def test_SDIO_mode(mode: str) -> None:
+    config = f"""
+    chip: esp32
+
+    peripheral:
+        SDIO:
+            0: {mode}
+
+    6 : SD0_CLK
+    7:  SD0_DATA0
+    8:  SD0_DATA1
+    9:  SD0_DATA2
+    10: SD0_DATA3
+    11: SD0_CMD
+    """
+    out = '\n'.join(run(config))
+    assert 'Error' not in out
+
+
+def test_SDIO_mode_missing_pins() -> None:
+    config = """
+    chip: esp32
+
+    peripheral:
+        SDIO:
+            0: 4
+
+    6 : SD0_CLK
+    7:  SD0_DATA0
+    11: SD0_CMD
+    """
+    out = '\n'.join(run(config))
+    for pin in ['SD0_DATA1', 'SD0_DATA2', 'SD0_DATA3']:
+        assert f'Error: Required function {pin} from peripheral SDIO is not assigned to any pin.' in out

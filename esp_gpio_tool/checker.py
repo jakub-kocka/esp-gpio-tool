@@ -33,24 +33,35 @@ def load_user_input(input_string: str) -> dict[str, str]:
 def run_check(user_input: str) -> list[str]:
     output = []
     data = load_user_input(user_input)
-    if 'chip' in data.keys():
-        chip_name = data['chip']
-        data.pop('chip')
-    else:
+    # get the chip name and verify if it is supported
+    if 'chip' not in data.keys():
         output.append('Warning: Chip name not found in input file. Assuming ESP32.')
-        chip_name = 'esp32'
+    chip_name = data.pop('chip', 'esp32')
     if chip_name not in SUPPORTED_CHIPS:
         raise SystemExit(f"Error: Invalid chip: '{chip_name}'. Supported chips: {SUPPORTED_CHIPS}.")
     esp = ESP(chip_name)
+
+    peripherals: dict[str, dict[str, str]] | Any = data.pop('peripheral', {})
+    if not isinstance(peripherals, dict):
+        raise SystemExit('Error: Invalid format: Peripheral section must be a dictionary.')
+    for name, value in peripherals.items():
+        try:
+            per = esp.get_peripheral(name)
+            for i, mode in value.items():
+                per.set_mode(str(i), mode)
+        except ValueError as err:
+            output.append(f'Error: {err}. Mode was NOT changed!')
+
+    # go through the yaml file and check if the pins have valid configuration for selected target
     for key, fun in data.items():
         try:
             num = int(key)
         except ValueError:
-            output.append(f'Error: Unknown key in yaml: {key}')
+            output.append(f'Error: Unknown key in yaml: {key}. Skipping.')
             continue
         # Check if the pin is valid
         if num not in esp.gpios.keys():
-            output.append(f'Error: Pin {num} not found for {esp.name}')
+            output.append(f'Error: Pin {num} not found for {esp.name}.')
             continue
 
         try:
