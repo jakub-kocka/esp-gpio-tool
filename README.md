@@ -78,6 +78,31 @@ chip: esp32
 0: TOUCH0
 ```
 
+###### Peripheral Mode Selection
+
+Some peripherals support changing modes of operation. The mode you select may require a different subset of the peripheral's pins. This helps the tool understand your needs and adjust its checks accordingly.
+
+To see a list of supported modes, check the datasheet of your selected chip. Alternatively, you can check the definition in the `esp_gpio_tool/targets/` folder. Here, you'll find your selected chip and can get a list of supported modes based on the peripheral.
+
+If you select a mode that the peripheral doesn't support, the checker won't consider the mode change. Instead, it will continue in its default state and provide a list of supported modes.
+
+Here's an example of a config file where the Quad mode of HSPI is selected:
+
+```yaml
+chip: esp32
+
+peripheral:
+  SPI:
+    HSPI: QSPI
+
+2:  HSPIWP
+4:  HSPIHD
+12: HSPIQ
+13: HSPID
+14: HSPICLK
+15: HSPICS0
+```
+
 
 ---
 

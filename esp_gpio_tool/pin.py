@@ -1,53 +1,55 @@
 # SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
 # SPDX-License-Identifier: Apache-2.0
+from dataclasses import dataclass
+from dataclasses import field
 
 
+@dataclass
 class Pin:
+    pin: int
+    power_domain: str
+    is_input: bool = True
+    is_output: bool = True
+    strapping: str | None = None
+    functions: list[str] = field(default_factory=list)
+    reserved: list[str] = field(default_factory=list)
+    at_reset: str | None = None
     assigned_function: str | None = None
-    number = 0
-    input = True
-    output = True
-    strapping = None
-    functions: list[str] = []
 
     @property
     def used(self) -> bool:
         return self.assigned_function is not None
 
-    def __init__(
-        self,
-        pin: int,
-        functions: list[str],
-        is_input: bool = True,
-        is_output: bool = True,
-        strapping: str = None,
-        reserved: list[str] = None,
-    ) -> None:
-        self.pin = pin
-        self.functions = functions
-        self.is_input = is_input
-        self.is_output = is_output
-        self.strapping = strapping
-        self.reserved = reserved or []  # reserved functions of the pin for specific variants of chip, e.g. PSRAM
-
     def __str__(self) -> str:
-        return f'Pin({self.pin}, {self.functions}), assigned_function={self.assigned_function}'
+        return (
+            f'Pin({self.pin}, {self.functions}), power domain={self.power_domain}, '
+            f'assigned_function={self.assigned_function}'
+        )
 
     def __repr__(self) -> str:
         return str(self)
 
     def assign_function(self, function: str) -> list[str]:
-        output = []
+        # Check for pin compatibility
         if self.used:
-            raise ValueError(f'Pin {self.pin} already assigned to {self.assigned_function}')
+            raise ValueError(f'Pin {self.pin} is already assigned to function {self.assigned_function}.')
         if function == 'INPUT' and not self.is_input:
-            raise ValueError(f'Pin {self.pin} does not support input')
+            raise ValueError(f'Pin {self.pin} does not support input mode.')
         if function == 'OUTPUT' and not self.is_output:
-            raise ValueError(f'Pin {self.pin} does not support output')
+            raise ValueError(f'Pin {self.pin} does not support output mode.')
         self.assigned_function = function
+
+        output = []
+        # Strapping pin notes
         if self.strapping:
             output.append(
-                f'Warning: Pin {self.pin} is reserved for strapping, use with caution! '
+                f'Warning: Pin {self.pin} is reserved for strapping. Please use with caution! '
                 f'Strapping function: {self.strapping}'
             )
+
+        # Notes about pull-up/down resistors
+        if self.at_reset == 'PUP':
+            output.append(f'Note: Pin {self.pin} has an internal pull-up resistor enabled at reset.')
+        elif self.at_reset == 'PDOWN':
+            output.append(f'Note: Pin {self.pin} has an internal pull-down resistor enabled at reset.')
         return output
