@@ -48,7 +48,7 @@ run-danger-mr-linter:
 pre-commit-mr:
   stage: pre-check
   needs: []
-  image: python:3.11-alpine3.18
+  image: python:3.10-alpine3.18
   variables:
     SKIP: pip-compile
   before_script:
@@ -76,7 +76,7 @@ pre-commit-mr:
 # ------------------------------------------------------------------------------------------------------
 codebase-tests:
   stage: test
-  image: python:3.11
+  image: python:3.10
   needs: [] # Do not wait for previous stages
   before_script:
     - pip install -e '.[test]'
@@ -101,7 +101,7 @@ codebase-tests:
 # ------------------------------------------------------------------------------------------------------
 codebase-quality:
   stage: test
-  image: python:3.11-alpine3.18
+  image: python:3.10-alpine3.18
   needs: [] # Do not wait for previous stages
   before_script:
     - apk add git
