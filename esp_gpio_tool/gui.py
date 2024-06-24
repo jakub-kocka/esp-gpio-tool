@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
 # SPDX-License-Identifier: Apache-2.0
+import itertools
 import os
 import sys
 
@@ -14,6 +15,7 @@ except ImportError as exc:
 from esp_gpio_tool_cli.checker import run_check
 from esp_gpio_tool_cli.chip import ESP
 from esp_gpio_tool_cli.chip import SUPPORTED_CHIPS
+from esp_gpio_tool_cli.peripheral import BasePeripheral
 
 # On different platforms tkinter.Event.delta is resolved differently
 # The event.delta is used for scrolling (<MouseWheel>) event
@@ -240,7 +242,7 @@ class GUI:
                     sub_periph_lbl = tk.Label(
                         master=column_sub_periph_mid_frm,
                         text=sub_periph,
-                        width=5,
+                        width=25,
                         height=len(peripheral.all_pins[sub_periph]),
                         bg=row_frm['bg'],
                         fg='black',
@@ -250,8 +252,6 @@ class GUI:
                     if sys.platform == 'linux':
                         sub_periph_lbl.bind('<Button-4>', on_mousewheel_linux_down)
                         sub_periph_lbl.bind('<Button-5>', on_mousewheel_linux_up)
-<<<<<<< HEAD
-=======
                     # peripheral mode select
                     if peripheral.supported_modes:
                         sub_periph_modes: list[str] = []
@@ -285,7 +285,6 @@ class GUI:
                     if sys.platform == 'linux':
                         line_sub_cns.bind('<Button-4>', on_mousewheel_linux_down)
                         line_sub_cns.bind('<Button-5>', on_mousewheel_linux_up)
->>>>>>> 97424d8 (fix(gui): Fixed spaces between lines)
 
                 pin_row = 0
                 for pins in peripheral.all_pins.values():
@@ -305,6 +304,11 @@ class GUI:
                         pins_values[pin].current(0)
                         pins_values[pin].grid(row=pin_row, column=1, sticky='nsew')
                         pins_values[pin].bind('<<ComboboxSelected>>', gpio_sel_changed)
+
+                        if peripheral.supported_modes and pin not in list(
+                            itertools.chain.from_iterable(peripheral.filtered_pins.values())
+                        ):
+                            pins_values[pin].configure(state='disabled')
 
                         pin_row += 1
 
@@ -346,6 +350,7 @@ class GUI:
             canvas.bind('<Button-4>', on_mousewheel_linux_down)
             canvas.bind('<Button-5>', on_mousewheel_linux_up)
         chips_cmb.bind('<<ComboboxSelected>>', chip_selection_changed)
+        gui.option_add('*TCombobox*Listbox.Justify', 'center')
 
         chip_selection_changed(event=None)
 

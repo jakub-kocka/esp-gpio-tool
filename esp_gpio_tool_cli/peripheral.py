@@ -35,6 +35,7 @@ class BasePeripheral:
         # peripheral modes in selected peripherals
         self.supported_modes: dict[str, list[str | int]] = {}  # {"HSPI": ["Standard SPI", "QSPI"]}
         self.mode: dict[str, str | int] = {}  # {"HSPI": "Standard SPI", "VSPI": "QSPI"}
+        self.mode_label: str | None = None  # Used only if mode is not self descriptive enough (for GUI mostly)
 
     def __str__(self) -> str:
         return f'{self.name}(assigned_pins={self.assigned_pins}, universal_pins={self.universal_pins})'
@@ -105,9 +106,11 @@ class BasePeripheral:
         """Set mode of interface communication"""
         if instance not in self.instances:
             raise ValueError(f'Instance {instance} not found. Supported instances: {self.instances}')
-        if mode not in self.supported_modes.get(instance, []):
+        supported_modes = [str(i) for i in self.supported_modes.get(instance, [])]
+        if mode not in supported_modes:
             raise ValueError(
-                f'Mode {mode} is not supported for {self.name} {instance}. Supported modes: {self.supported_modes}'
+                f'Mode {mode} is not supported for {self.name} {instance}. '
+                f'Supported modes: {self.supported_modes[instance]}'
             )
         self.mode[instance] = mode
 
@@ -156,7 +159,9 @@ class SPI(BasePeripheral):
         pins = {}
         for instance in self.instances:
             if self.mode[instance] == 'Standard SPI':
-                pins[instance] = list(filter(lambda x: not (x.endswith('HD') or x.endswith('WP')), self._assigned_pins))
+                pins[instance] = list(
+                    filter(lambda x: not (x.endswith('HD') or x.endswith('WP')), self._assigned_pins[instance])
+                )
             elif self.mode[instance] == 'QSPI':
                 pins[instance] = self._assigned_pins[instance]
         return pins
@@ -228,6 +233,7 @@ class SDIO(BasePeripheral):
         self.common_prefix = 'SD'
         self.supported_modes = kwargs.get('data_width', {str(i): 1 for i in self.instances})
         self.mode = {str(i): 1 for i in self.instances}
+        self.mode_label = 'Data width'
         self._assigned_pins = self._unwrap_data_pins()
 
     @property
@@ -252,6 +258,10 @@ class SDIO(BasePeripheral):
                 # replace wildcard with all possible channels
                 assigned_pins[instance].extend([pin.format(data_width=str(i)) for i in range(width)])
         return assigned_pins
+
+    def set_mode(self, instance: str, mode: str) -> None:
+        super().set_mode(instance, mode)
+        self.mode[instance] = int(mode)
 
 
 class SDMMC(SDIO):
@@ -330,7 +340,7 @@ class EMAC(BasePeripheral):
         # shared pins for RMII and MII
         pins = ['TX_CLK', 'TX_EN', 'TXD0', 'TXD1', 'RX_DV', 'RXD0', 'RXD1']
         if self.mode['0'] == 'RMII internal CLK':
-            pins.append('EMAC_CLK_OUT')
+            pins.append('CLK_OUT')
         elif self.mode['0'] == 'MII':
             # additional pins needed for MII
             pins.extend(['RX_CLK', 'TXD2', 'TXD3', 'RX_ER', 'RXD2', 'RXD3', 'TX_ER'])
