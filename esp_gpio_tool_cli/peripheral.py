@@ -241,7 +241,7 @@ class SDIO(BasePeripheral):
         """Dynamic getter for assigned pins, based on data width of the peripheral instance"""
         pins = {}
         for instance in self.instances:
-            width = self.mode.get(instance)
+            width = self.mode.get(instance) - 1  # type: ignore
             regex = re.compile(rf'[A-Z]{{2}}\d_(CLK|CMD|DATA[0-{width}])')
             pins[instance] = [pin for pin in self._assigned_pins[instance] if regex.match(pin)]
         return pins
