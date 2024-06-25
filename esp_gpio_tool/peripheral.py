@@ -147,7 +147,7 @@ class SPI(BasePeripheral):
         super().__init__(
             count, assigned_pins, universal_pins, instances=kwargs.get('subname'), _replace_keyword='subname'
         )
-        self.common_prefix = r'.SPI'
+        self.common_prefix = r'.?SPI'
         self.supported_modes = {i: kwargs.get('modes', []) for i in self.instances}
         self.mode = {i: 'Standard SPI' for i in self.instances}
 
@@ -168,7 +168,7 @@ class SPI(BasePeripheral):
             super().check_pin_function(instance, function, pin)
         except ValueError as exc:
             raise ValueError(
-                f"Note: {pin} of {instance} was assigned to it's non-default function, "
+                f"Note: {function} of {instance} was assigned to it's non-default pin using GPIO matrix, "
                 'which will lead to slower transfer speeds and clock frequencies only up to 40 MHz.'
             ) from exc
 
@@ -206,6 +206,7 @@ class UART(BasePeripheral):
     ) -> None:
         super().__init__(count, assigned_pins, universal_pins)
         self.optional_pins = self.unwrap_pins(['U{count}CTS', 'U{count}RTS'])
+        self.common_prefix = r'U.'
         # TODO print warning if 0 instance is used? probably on PIN side or make UART0 turned on by default?
 
     def check_pin_function(self, instance: str, function: str, pin: Pin) -> None:
@@ -215,7 +216,7 @@ class UART(BasePeripheral):
             super().check_pin_function(instance, function, pin)
         except ValueError as exc:
             raise ValueError(
-                f"Note: {pin} of was assigned to it's non-default function using GPIO matrix. "
+                f"Note: {function} of {instance} was assigned to it's non-default pin using GPIO matrix. "
                 'It is recomanded to use pins from IO MUX if you need very high UART baud rates (over 40 MHz).'
             ) from exc
 
