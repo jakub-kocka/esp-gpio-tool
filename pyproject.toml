@@ -124,4 +124,4 @@ find = {exclude = ["test", "test.*"]}
     testpaths        = ["tests"]
 
 [tool.coverage.run]
-    omit = ["__*__.py", "*/tests/*"]
+    omit = ["__*__.py", "*/tests/*", "esp_gpio_tool/*"]

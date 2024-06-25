@@ -22,7 +22,9 @@ class BasePeripheral:
         # wildcard generation settings
         self.start_cnt = kwargs.get('start_cnt', 0)
         # names of instances, by default use counter from `start_cnt` to `count`
-        self.instances = kwargs.get('instances', [str(i) for i in range(self.start_cnt, self.count + self.start_cnt)])
+        self.instances: list[str] = kwargs.get(
+            'instances', [str(i) for i in range(self.start_cnt, self.count + self.start_cnt)]
+        )
         # keyword to replace in wildcard pins
         self._replace_keyword = kwargs.get('_replace_keyword', 'count')
         self.used = {i: False for i in self.instances}
@@ -242,7 +244,7 @@ class SDIO(BasePeripheral):
         """Dynamic getter for assigned pins, based on data width of the peripheral instance"""
         pins = {}
         for instance in self.instances:
-            width = self.mode.get(instance) - 1  # type: ignore
+            width: int = int(self.mode.get(instance, 0)) - 1
             regex = re.compile(rf'[A-Z]{{2}}\d_(CLK|CMD|DATA[0-{width}])')
             pins[instance] = [pin for pin in self._assigned_pins[instance] if regex.match(pin)]
         return pins
