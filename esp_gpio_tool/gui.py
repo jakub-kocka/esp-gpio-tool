@@ -44,12 +44,12 @@ class GUI:
 
         gui = tk.Tk()
 
+        gui_min_width = 925
+        gui_min_height = 600
         gui_width = int(gui.winfo_screenwidth() / 2)
         gui_height = int(gui.winfo_screenheight() / 2)
-        gui_pos_x = int(gui_width / 2)
+        gui_pos_x = int(gui_width - gui_min_width / 2)
         gui_pos_y = int(gui_height / 5)
-        gui_min_width = 600
-        gui_min_height = 800
 
         gui.geometry(f'{gui_width}x{gui_height}+{gui_pos_x}+{gui_pos_y}')
         gui.title('ESP GPIO Tool')
@@ -166,12 +166,34 @@ class GUI:
                     pins_values[pin].configure(state='disabled')
                     pins_values[pin].current(0)
 
-        container = tk.Frame(master=gui, width=100, bg='blue')
+        container = tk.Frame(master=gui)
+
+        def on_canvas_configure(event: tk.Event) -> None:
+            """Adjust the width of the scrollable frame based on the canvas width"""
+            canvas_width = event.width
+            canvas.itemconfig(self.canvas_window, width=canvas_width)
+            scrollable_frm.config(width=canvas_width)
+            canvas.configure(scrollregion=canvas.bbox('all'))
+
+        def on_frame_configure(_: tk.Event) -> None:
+            """Update the scroll region of the canvas based on the size of the scrollable frame"""
+            canvas.configure(scrollregion=canvas.bbox('all'))
+
+        def on_container_configure(_: tk.Event) -> None:
+            """Adjust the visible region of the canvas when resizing the window"""
+            canvas.configure(scrollregion=canvas.bbox('all'))
+            canvas.yview_moveto(scrollbar.get()[0])
 
         canvas = tk.Canvas(master=container, highlightthickness=0)
         scrollbar = ttk.Scrollbar(container, orient='vertical', command=canvas.yview)
         scrollable_frm = ttk.Frame(canvas)
-        scrollable_frm.bind('<Configure>', lambda e: canvas.configure(scrollregion=canvas.bbox('all')))
+        scrollable_frm.bind('<Configure>', on_frame_configure)
+
+        self.canvas_window = canvas.create_window((0, 0), window=scrollable_frm, anchor='nw')
+        canvas.bind('<Configure>', on_canvas_configure)
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        container.bind('<Configure>', on_container_configure)
 
         def chip_selection_changed(event: (tk.Event | None)) -> None:
             """Target selected from chips Combobox event handler
@@ -189,9 +211,8 @@ class GUI:
                 for widget in scrollable_frm.winfo_children():
                     widget.destroy()
                 pins_values.clear()
-
-            canvas.create_window((0, 0), window=scrollable_frm, anchor='nw')
-            canvas.configure(yscrollcommand=scrollbar.set)
+                self.canvas_window = canvas.create_window((0, 0), window=scrollable_frm, anchor='nw')
+                canvas.itemconfig(self.canvas_window, width=scrollable_frm.winfo_width())
 
             color_switch = 2
             colors = ['#DCDCDC', 'white']
@@ -202,37 +223,38 @@ class GUI:
 
                 row_frm = tk.Frame(
                     master=scrollable_frm,
-                    width=200,
                     bg=colors[color_switch % 2],
                 )
                 column_left_frm = tk.Frame(
                     master=row_frm,
-                    width=row_frm.winfo_width() / 3,
                 )
 
                 column_mid_frm = tk.Frame(
                     master=row_frm,
-                    width=(row_frm.winfo_width() / 3) * 2,
                 )
 
                 row_sub_periph_frm = tk.Frame(
                     master=column_mid_frm,
-                    width=column_mid_frm.winfo_width(),
                 )
 
-                column_sub_periph_mid_frm = tk.Frame(
-                    master=row_sub_periph_frm, width=row_sub_periph_frm.winfo_width() / 2, bg=row_frm['bg']
-                )
+                column_sub_periph_mid_frm = tk.Frame(master=row_sub_periph_frm, bg=row_frm['bg'])
+                column_sub_periph_mid_frm.bind('<MouseWheel>', on_mousewheel)
+                if sys.platform == 'linux':
+                    column_sub_periph_mid_frm.bind('<Button-4>', on_mousewheel_linux_down)
+                    column_sub_periph_mid_frm.bind('<Button-5>', on_mousewheel_linux_up)
 
                 column_sub_periph_right_frm = tk.Frame(
                     master=row_sub_periph_frm,
-                    width=row_sub_periph_frm.winfo_width() / 2,
                 )
+                column_sub_periph_right_frm.bind('<MouseWheel>', on_mousewheel)
+                if sys.platform == 'linux':
+                    column_sub_periph_right_frm.bind('<Button-4>', on_mousewheel_linux_down)
+                    column_sub_periph_right_frm.bind('<Button-5>', on_mousewheel_linux_up)
 
                 peripheral_lbl = tk.Label(
                     master=column_left_frm, text=peripheral.name, width=15, bg=row_frm['bg'], fg='black'
                 )
-                peripheral_lbl.pack(side=tk.LEFT, anchor=tk.NW, fill=tk.BOTH)
+                peripheral_lbl.pack(side=tk.LEFT, anchor=tk.NW, fill=tk.BOTH, expand=True)
                 peripheral_lbl.bind('<MouseWheel>', on_mousewheel)
                 if sys.platform == 'linux':
                     peripheral_lbl.bind('<Button-4>', on_mousewheel_linux_down)
@@ -242,8 +264,7 @@ class GUI:
                     sub_periph_lbl = tk.Label(
                         master=column_sub_periph_mid_frm,
                         text=sub_periph,
-                        width=25,
-                        height=len(peripheral.all_pins[sub_periph]),
+                        height=len(peripheral.all_pins[sub_periph]) - (1 if peripheral.supported_modes else 0),
                         bg=row_frm['bg'],
                         fg='black',
                     )
@@ -266,7 +287,6 @@ class GUI:
                             state='readonly',
                             justify='center',
                             values=sub_periph_modes,
-                            width=25,
                         )
                         sub_periph_mode_cmb.pack(side=tk.TOP, anchor=tk.S, expand=True)
                         sub_periph_mode_cmb.current(
@@ -279,8 +299,8 @@ class GUI:
                             ),
                         )
 
-                    line_sub_cns = tk.Canvas(master=column_sub_periph_mid_frm, height=1, width=200, background='grey')
-                    line_sub_cns.pack(side=tk.TOP)
+                    line_sub_cns = tk.Canvas(master=column_sub_periph_mid_frm, height=1, background='grey')
+                    line_sub_cns.pack(side=tk.TOP, anchor=tk.S, expand=True, fill=tk.X)
                     line_sub_cns.bind('<MouseWheel>', on_mousewheel)
                     if sys.platform == 'linux':
                         line_sub_cns.bind('<Button-4>', on_mousewheel_linux_down)
@@ -329,9 +349,9 @@ class GUI:
                 row_frm.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
                 color_switch += 1
 
-            container.pack(fill=tk.BOTH, side=tk.LEFT, expand=True)
-            canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
             scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+            canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+            container.pack(fill=tk.BOTH, side=tk.LEFT, expand=True)
 
         def on_mousewheel(event: tk.Event) -> None:
             """Mousewheel event handler"""
@@ -345,10 +365,16 @@ class GUI:
             """Mousewheel event handler for linux - down scroll"""
             canvas.yview_scroll(-1, 'units')
 
+        container.bind('<MouseWheel>', on_mousewheel)
+        if sys.platform == 'linux':
+            container.bind('<Button-4>', on_mousewheel_linux_down)
+            container.bind('<Button-5>', on_mousewheel_linux_up)
+
         canvas.bind('<MouseWheel>', on_mousewheel)
         if sys.platform == 'linux':
             canvas.bind('<Button-4>', on_mousewheel_linux_down)
             canvas.bind('<Button-5>', on_mousewheel_linux_up)
+
         chips_cmb.bind('<<ComboboxSelected>>', chip_selection_changed)
         gui.option_add('*TCombobox*Listbox.Justify', 'center')
 
