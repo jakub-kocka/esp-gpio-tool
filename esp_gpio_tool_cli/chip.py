@@ -6,9 +6,9 @@ import sys
 
 import yaml
 
-from esp_gpio_tool.peripheral import *  # noqa: F403; pylint: disable=wildcard-import, unused-wildcard-import
-from esp_gpio_tool.peripheral import BasePeripheral
-from esp_gpio_tool.pin import Pin
+from esp_gpio_tool_cli.peripheral import *  # noqa: F403; pylint: disable=wildcard-import, unused-wildcard-import
+from esp_gpio_tool_cli.peripheral import BasePeripheral
+from esp_gpio_tool_cli.pin import Pin
 
 CONFIG_DIR = os.path.join(os.path.dirname(__file__), 'targets/')
 SUPPORTED_CHIPS = [filename.split('.')[0] for filename in os.listdir(CONFIG_DIR)]

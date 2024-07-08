@@ -46,7 +46,7 @@ peripheral:
     count: 2
     data_width: {'0': [1, 4, 8], '1': [1, 4]}
     assigned_pins: [ "HS{count}_CLK", "HS{count}_CMD", "HS{count}_DATA{{data_width}}" ]
-    universal_pins: [card_detect_n, card_write_prt]  # optional card detect and write protect pins
+    universal_pins: ["card_detect_n_{count}", "card_write_prt_{count}", "card_int_{count}"]  # optional card detect, write protect and interrupt pins
   SDIO:
     count: 2
     assigned_pins: [ "SD{count}_CLK", "SD{count}_CMD", "SD{count}_DATA{{data_width}}"]

@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 import pytest
 
-from esp_gpio_tool.checker import run_check
-from esp_gpio_tool.chip import SUPPORTED_CHIPS
+from esp_gpio_tool_cli.checker import run_check
+from esp_gpio_tool_cli.chip import SUPPORTED_CHIPS
 
 
 def run(config: str) -> list[str]:

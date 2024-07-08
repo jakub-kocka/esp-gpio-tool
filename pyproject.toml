@@ -91,7 +91,7 @@
     changelog_merge_prerelease = true
     bump_message               = "change: Updated release version to v$new_version"
     version_files              = [
-        "esp_gpio_tool/__init__.py:__version__"
+        "esp_gpio_tool_cli/__init__.py:__version__"
     ]
 
     change_type_order = [
@@ -111,15 +111,17 @@ perf     = "Performance Improvements"
 docs     = "Documentation updates"
 
 [tool.setuptools.dynamic]
-version = {attr = "esp_gpio_tool.__version__"}
+version = {attr = "esp_gpio_tool_cli.__version__"}
 
+[tool.setuptools.packages]
+find = {exclude = ["test", "test.*"]}
 
 [tool.pytest.ini_options]
-    addopts          = "-s --log-cli-level DEBUG --cov=esp_gpio_tool --cov-report=term"
+    addopts          = "-s --log-cli-level DEBUG --cov=esp_gpio_tool_cli --cov-report=term"
     python_classes   = ["Test*"]
     python_files     = ["test_*.py"]
     python_functions = ["test_*"]
     testpaths        = ["tests"]
 
 [tool.coverage.run]
-    omit = ["__*__.py", "*/tests/*"]
+    omit = ["__*__.py", "*/tests/*", "esp_gpio_tool/*"]

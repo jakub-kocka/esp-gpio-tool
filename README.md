@@ -27,6 +27,9 @@ It offers GPIO-related tools.
 - [Getting Started](#getting-started)
   - [Usage](#usage)
 - [Documentation](#documentation)
+  - [GPIO Assignment Checker](#gpio-assignment-checker)
+    - [GUI](#gui)
+    - [Input file for CLI](#input-file)
 - [CI/CD Overview](#cicd-overview)
   - [GitLab CI/CD](#gitlab-cicd)
   - [GitHub Actions](#github-actions)
@@ -45,7 +48,6 @@ It offers GPIO-related tools.
    pip install esp-gpio-tool
    ```
 
-
 ---
 
 ## Documentation
@@ -54,15 +56,38 @@ ESP GPIO tool currently supports checking of pin assignment for ESP32 using CLI.
 
 ### GPIO Assignment Checker
 
-The tool will check your pin assignment for completeness, correctness and potential collisions with pre-defined perfipherals for debugging etc.
+The tool will check your pin assignment for completeness, correctness and potential collisions with pre-defined peripherals for debugging etc.
 
 Example:
 
 ```sh
-python -m esp_gpio_tool check myconfig.yaml
+python -m esp_gpio_tool_cli check myconfig.yaml
 ```
 
 For details regarding the format of the input file please refer to the Input file section.
+
+#### GUI
+The GUI version of a user input for the `GPIO Assignment Checker` can be used.
+
+> [!NOTE]
+> If you want to use GUI for checker, install Python `Tkinter`.
+
+Debian-based Linux (Ubuntu, Debian, ...)
+```sh
+sudo apt-get install python3-tk
+```
+
+MacOS
+```sh
+brew install python-tk
+```
+
+Windows - if not installed use the Python installer to modify the installation and check the `tcl``/tk` and IDLE` (or similar) option to be included in the installation.
+
+To invoke the GUI following command can be used:
+```sh
+python -m esp_gpio_tool
+```
 
 #### Input File
 
@@ -135,4 +160,4 @@ This document and the attached source code are released as Free Software under A
 
 ## Contributing
 
-📘 If you are interested in contributing to this project, see the [project Contributing Guide](CONTRIBUTING.md).
+📘 If you are interested in contributing to this project, see the [Project Contributing Guide](CONTRIBUTING.md).
