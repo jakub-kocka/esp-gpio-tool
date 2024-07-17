@@ -113,13 +113,21 @@ class GUI:
             """GPIO check button event handler
             - prepares user defined GPIOs for checker input and runs checker
             """
-            user_gpios: dict[str, str] = {'chip': chips_cmb.get()}
+            user_gpios: dict[str, str | list] = {'chip': chips_cmb.get()}
             for pin, value in pins_values.items():
                 gpio = value.get()
                 if gpio == '-':
                     continue
+                key = gpio.split('GPIO')[1].split(' ')[0]
 
-                user_gpios[gpio.split('GPIO')[1].split(' ')[0]] = pin
+                if key in user_gpios:
+                    if isinstance(user_gpios[key], list):
+                        user_gpios[key].append(pin)  # type: ignore
+                    else:
+                        user_gpios[key] = [user_gpios[key], pin]
+                else:
+                    user_gpios[key] = pin
+
             check = '\n '.join(run_check(user_input=user_gpios))
             if 'error' in check.lower():
                 messagebox.showerror('Check - Error', check)
@@ -132,22 +140,6 @@ class GUI:
 
         pins_values: dict[str, ttk.Combobox] = {}
         self.gpios: list[str] = []
-
-        def gpio_sel_changed(_: tk.Event) -> None:
-            """GPIO from combobox selected event
-            - removes already used GPIO from the combobox options for other pins
-            """
-            new_gpios: list[str] = self.gpios.copy()
-            for value in pins_values.values():
-                gpio = value.get()
-                if gpio == '-':
-                    continue
-
-                if gpio in new_gpios:
-                    new_gpios.remove(gpio)
-
-            for __, value in pins_values.items():
-                value.config(values=new_gpios)
 
         def mode_changed(event: tk.Event, peripheral: BasePeripheral, sub_peripheral: str) -> None:
             """Mode change event handler
@@ -323,7 +315,6 @@ class GUI:
                         )
                         pins_values[pin].current(0)
                         pins_values[pin].grid(row=pin_row, column=1, sticky='nsew')
-                        pins_values[pin].bind('<<ComboboxSelected>>', gpio_sel_changed)
 
                         if peripheral.supported_modes and pin not in list(
                             itertools.chain.from_iterable(peripheral.filtered_pins.values())

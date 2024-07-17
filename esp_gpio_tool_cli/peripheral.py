@@ -384,7 +384,8 @@ class CLKOUT(BasePeripheral):
     def __init__(
         self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
     ) -> None:
-        super().__init__(count, assigned_pins, universal_pins, **kwargs)
+        super().__init__(count, assigned_pins, universal_pins, start_cnt=1, **kwargs)
+        self.common_prefix = 'CLK_OUT'
         self.optional_pins = self.assigned_pins  # all pins are optional
 
 
@@ -415,3 +416,4 @@ class XTAL32K(BasePeripheral):
         super().__init__(count, assigned_pins, universal_pins, **kwargs)
         # based on usage, pins can be optional
         self.optional_pins = self.assigned_pins  # all pins are optional
+        self.common_prefix = 'XTAL_32K_'

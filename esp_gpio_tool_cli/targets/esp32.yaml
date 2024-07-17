@@ -74,7 +74,7 @@ peripheral:
     universal_pins: [ "PCNT_SIG_CH{{channel}}_IN{count}", "PCNT_CTRL_CH{{channel}}_IN{count}" ]
   XTAL32K:  # external 32K crystal oscillator
     count: 1
-    assigned_pins: [ 32K_XP, 32K_XN ]
+    assigned_pins: [ XTAL_32K_P, XTAL_32K_N ]
 
 memory:
   ["In-Package Flash", "Off-Package Flash", "PSRAM"]
@@ -107,8 +107,8 @@ gpio:
   25: { power_domain: VDD3P3_RTC, functions: [ ADC2_CH8, RTC_GPIO6, DAC_1, EMAC_RXD0 ]}
   26: { power_domain: VDD3P3_RTC, functions: [ ADC2_CH9, RTC_GPIO7, DAC_2, EMAC_RXD1 ]}
   27: { power_domain: VDD3P3_RTC, functions: [ ADC2_CH7, RTC_GPIO17, TOUCH7. EMAC_RX_DV ]}
-  32: { power_domain: VDD3P3_RTC, functions: [ ADC1_CH4, RTC_GPIO9, TOUCH9, 32K_XP ]}
-  33: { power_domain: VDD3P3_RTC, functions: [ ADC1_CH5, RTC_GPIO8, TOUCH8, 32K_XN ]}
+  32: { power_domain: VDD3P3_RTC, functions: [ ADC1_CH4, RTC_GPIO9, TOUCH9, XTAL_32K_P ]}
+  33: { power_domain: VDD3P3_RTC, functions: [ ADC1_CH5, RTC_GPIO8, TOUCH8, XTAL_32K_N ]}
   34: { power_domain: VDD3P3_RTC, functions: [ ADC1_CH6, RTC_GPIO4 ], is_output: false }
   35: { power_domain: VDD3P3_RTC, functions: [ ADC1_CH7, RTC_GPIO5 ], is_output: false }
   36: { power_domain: VDD3P3_RTC, functions: [ ADC1_CH0, RTC_GPIO0 ], is_output: false }
