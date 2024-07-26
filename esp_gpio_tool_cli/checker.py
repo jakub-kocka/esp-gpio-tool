@@ -73,7 +73,9 @@ def run_check(user_input: str | dict) -> list[str]:
                 per = esp.get_peripheral_from_function(fun)
 
                 # Check if the pin can be used for the function and mark peripheral as used
-                per.use(fun, esp.gpios[num])
+                note = per.use(fun, esp.gpios[num])
+                if note is not None:
+                    output.append(note)
 
             # Check if the pin supports the function
             output.extend(esp.gpios[num].assign_function(fun))

@@ -1,7 +1,7 @@
 peripheral:
   ADC:
     count: 2
-    channels: 10
+    channels: {'1': 8, '2': 10}
     assigned_pins: [ "ADC{count}_CH{{channel}}" ]
   DAC:
     count: 2
