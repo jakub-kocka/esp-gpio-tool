@@ -123,11 +123,15 @@ class ADC(BasePeripheral):
         self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
     ) -> None:
         super().__init__(count, assigned_pins, universal_pins, start_cnt=1)
-        self.channels = kwargs.get('channels', 10)
+        channels = kwargs.get('channels', 10)
+        if isinstance(channels, int):
+            self.channels = {i: channels for i in self.instances}
+        else:
+            self.channels = channels
         self.unwrap_channels(self.channels)
         self.optional_pins = self.assigned_pins  # all pins are optional
 
-    def unwrap_channels(self, channels: int) -> None:
+    def unwrap_channels(self, channels: dict[str, int]) -> None:
         """Convert wildcard channels to actual channels, e.g. ADC1_CH{channel} -> {1: [ADC1_CH1, ADC1_CH2... ]}"""
         for instance in self.assigned_pins.keys():
             for pin in self.assigned_pins[instance]:
@@ -135,7 +139,7 @@ class ADC(BasePeripheral):
                     continue
                 # replace wildcard with all possible channels
                 self._assigned_pins[instance].remove(pin)
-                self._assigned_pins[instance].extend([pin.format(channel=str(i)) for i in range(channels)])
+                self._assigned_pins[instance].extend([pin.format(channel=str(i)) for i in range(channels[instance])])
 
 
 class DAC(BasePeripheral):
