@@ -67,21 +67,21 @@ class BasePeripheral:
         """Return all assigned and universal pins, filtered by selected mode"""
         return {i: self.assigned_pins.get(i, []) + self.universal_pins.get(i, []) for i in self.instances}
 
-    def use(self, function: str, pin: Pin) -> None:
+    def use(self, function: str, pin: Pin) -> str | None:
         """Check the pin if it can be used for this function and mark peripheral as used"""
         for instance in self.instances:
             if function in self.all_pins.get(instance, []):
                 self.used[instance] = True
-                self.check_pin_function(instance, function, pin)
-                return
+                return self.check_pin_function(instance, function, pin)
         raise ValueError(f'Function {function} not found in peripheral {self.name}.')
 
-    def check_pin_function(self, instance: str, function: str, pin: Pin) -> None:
+    def check_pin_function(self, instance: str, function: str, pin: Pin) -> str | None:  # pylint: disable=useless-return
         """Check if the pin supports the function and if it can be used as input/output"""
         if function in self.assigned_pins.get(instance, []):
             if function not in pin.functions:
                 raise ValueError(f'Pin {pin.pin} does not support function {function}.')
         # TODO add check for input/output capabilities of the pin
+        return None  # return was forced by mypy, so we need to disable pylint check
 
     def required_pins(self, instance: str) -> list[str]:
         """Return all required pins for a peripheral instance"""
@@ -169,16 +169,16 @@ class SPI(BasePeripheral):
                 pins[instance] = self._assigned_pins[instance]
         return pins
 
-    def check_pin_function(self, instance: str, function: str, pin: Pin) -> None:
+    def check_pin_function(self, instance: str, function: str, pin: Pin) -> str | None:
         """Check if the pin supports the function and if it can be used as input/output"""
         # Pin assignment can be changed to any pin with GPIO matrix so ignore checks here
         try:
-            super().check_pin_function(instance, function, pin)
-        except ValueError as exc:
-            raise ValueError(
+            return super().check_pin_function(instance, function, pin)
+        except ValueError:
+            return (
                 f"Note: {function} of {instance} was assigned to it's non-default pin using GPIO matrix, "
                 'which will lead to slower transfer speeds and clock frequencies only up to 40 MHz.'
-            ) from exc
+            )
 
 
 class I2C(BasePeripheral):
@@ -194,10 +194,11 @@ class I2S(BasePeripheral):
     ) -> None:
         super().__init__(count, assigned_pins, universal_pins)
 
-    def check_pin_function(self, instance: str, function: str, pin: Pin) -> None:
+    def check_pin_function(self, instance: str, function: str, pin: Pin) -> str | None:  # pylint: disable=useless-return
         if function.endswith('_CLK'):
             if not any(fun.startswith('CLK_OUT') for fun in pin.functions):
                 raise ValueError(f'Pin {pin.pin} does not support CLK_OUT, which is required for {function}.')
+        return None  # return was forced by mypy, so we need to disable pylint check
 
 
 class TOUCH(BasePeripheral):
@@ -217,16 +218,16 @@ class UART(BasePeripheral):
         self.common_prefix = r'U.'
         # TODO print warning if 0 instance is used? probably on PIN side or make UART0 turned on by default?
 
-    def check_pin_function(self, instance: str, function: str, pin: Pin) -> None:
+    def check_pin_function(self, instance: str, function: str, pin: Pin) -> str | None:
         """Check if the pin supports the function and if it can be used as input/output"""
         # Pin assignment can be changed to any pin with GPIO matrix so ignore checks here
         try:
-            super().check_pin_function(instance, function, pin)
-        except ValueError as exc:
-            raise ValueError(
+            return super().check_pin_function(instance, function, pin)
+        except ValueError:
+            return (
                 f"Note: {function} of {instance} was assigned to it's non-default pin using GPIO matrix. "
                 'It is recomanded to use pins from IO MUX if you need very high UART baud rates (over 40 MHz).'
-            ) from exc
+            )
 
 
 class SDIO(BasePeripheral):
@@ -360,7 +361,7 @@ class EMAC(BasePeripheral):
             pins.append('EMAC_COL')
         return {'0': pins}
 
-    def check_pin_function(self, instance: str, function: str, pin: Pin) -> None:
+    def check_pin_function(self, instance: str, function: str, pin: Pin) -> str | None:
         if function == 'EMAC_CLK_OUT':
             # Note: CLK_OUT1 is experimental and on ESP32 is shared with RX_CLK signal on the same GPIO
             if not any(fun in ['CLK_OUT1', 'EMAC_CLK_OUT', 'EMAC_CLK_OUT_180'] for fun in pin.functions):
@@ -372,8 +373,7 @@ class EMAC(BasePeripheral):
         elif function in ['EMAC_MDI']:
             if not pin.is_output:
                 raise ValueError(f'Pin {pin.pin} does not support input, which is required for {function}.')
-        else:
-            super().check_pin_function(instance, function, pin)
+        return super().check_pin_function(instance, function, pin)
 
 
 class CLKOUT(BasePeripheral):
