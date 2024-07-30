@@ -38,15 +38,15 @@ peripheral:
     # SPI0 uses the same pins as SPI1 so actual count is 3
     count: 3 # SPI0, SPI1, SPI2 (HSPI), SPI3 (VSPI)
     subname: [ SPI, HSPI, VSPI ]
-    modes: [ Standard SPI, QSPI ]
+    modes: [ Single SPI, Dual SPI, Quad SPI ]
     # Note: D -> MOSI, Q -> MISO, CLK -> CLK, CS0 -> CS
     assigned_pins: [ "{subname}HD", "{subname}WP", "{subname}CS0", "{subname}CLK", "{subname}Q", "{subname}D" ]
     warning: {SPI: "SPI0 and SPI1 share the same SPI bus (same signals and IOs) and are used for connecting off-package flash and PSRAM"}
   SDMMC:
     count: 2
-    data_width: {'0': [1, 4, 8], '1': [1, 4]}
-    assigned_pins: [ "HS{count}_CLK", "HS{count}_CMD", "HS{count}_DATA{{data_width}}" ]
-    universal_pins: ["card_detect_n_{count}", "card_write_prt_{count}", "card_int_{count}"]  # optional card detect, write protect and interrupt pins
+    data_width: {'1': [1, 4, 8], '2': [1, 4]}
+    assigned_pins: [ "SDHOST_CCLK_{count}", "SDHOST_CCMD_{count}", "SDHOST_CDATA_{count}{{data_width}}" ]
+    universal_pins: [ "SDHOST_CARD_DETECT_{count}", "SDHOST_CARD_WRITE_PRT_{count}", "SDHOST_CARD_INT_{count}" ]  # optional card detect, write protect and interrupt pins
   SDIO:
     count: 2
     assigned_pins: [ "SD{count}_CLK", "SD{count}_CMD", "SD{count}_DATA{{data_width}}"]
