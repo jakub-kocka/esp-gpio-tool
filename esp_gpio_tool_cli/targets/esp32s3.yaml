@@ -85,7 +85,7 @@ peripheral:
     }
 
 
-# memory: # TODO reserved pins
+# memory: # TODO implement reserved pins
 #   ["In-Package Flash", "Off-Package Flash", "PSRAM"]
 
 # Note: PUP (wpu in datasheet) - pull up resistor enabled; PDOWN (wpd) - pull down resistor enabled

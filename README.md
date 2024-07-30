@@ -64,6 +64,12 @@ Example:
 python -m esp_gpio_tool_cli check myconfig.yaml
 ```
 
+or
+
+```sh
+espins_cli check myconfig.yaml
+```
+
 For details regarding the format of the input file please refer to the Input file section.
 
 #### GUI
@@ -87,6 +93,12 @@ Windows - if not installed use the Python installer to modify the installation a
 To invoke the GUI following command can be used:
 ```sh
 python -m esp_gpio_tool
+```
+
+or
+
+```sh
+espins check myconfig.yaml
 ```
 
 #### Input File
