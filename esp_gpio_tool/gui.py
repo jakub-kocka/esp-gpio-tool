@@ -280,7 +280,7 @@ class GUI:
                             justify='center',
                             values=sub_periph_modes,
                         )
-                        sub_periph_mode_cmb.pack(side=tk.TOP, anchor=tk.S, expand=True)
+                        sub_periph_mode_cmb.pack(side=tk.TOP, anchor=tk.S, expand=True, ipadx=5)
                         sub_periph_mode_cmb.current(
                             peripheral.supported_modes[sub_periph].index(peripheral.mode[sub_periph])
                         )
