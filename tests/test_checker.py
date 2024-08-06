@@ -56,6 +56,16 @@ def test_valid_config() -> None:
     assert 'All checks passed.' in result
 
 
+def test_valid_config_multiple_functions() -> None:
+    config = """
+    chip: esp32
+    36: ADC1_CH0
+    3: [LEDC_SIG_OUT0, LEDC_SIG_OUT1, RMT_SIG_IN0]
+    """
+    result = run(config)
+    assert 'Warning: Pin 3 has been used multiple times, this may be a mistake, please be aware.' in result
+
+
 def test_invalid_pin_format() -> None:
     config = """
     chip: esp32

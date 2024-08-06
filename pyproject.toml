@@ -31,6 +31,7 @@
             "pip-tools~=7.3",
             "pytest-cov~=4.1.0",
             "pytest~=7.4.0",
+            "pandas[excel]~=2.2.2",
         ]
         test = ["pytest-cov~=4.1.0", "pytest~=7.4.0"]
 

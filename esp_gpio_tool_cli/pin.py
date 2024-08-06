@@ -14,11 +14,11 @@ class Pin:
     functions: list[str] = field(default_factory=list)
     reserved: list[str] = field(default_factory=list)
     at_reset: str | None = None
-    assigned_function: str | None = None
+    assigned_function: list[str] = field(default_factory=list)
 
     @property
     def used(self) -> bool:
-        return self.assigned_function is not None
+        return bool(self.assigned_function)
 
     def __str__(self) -> str:
         return (
@@ -31,13 +31,11 @@ class Pin:
 
     def assign_function(self, function: str) -> list[str]:
         # Check for pin compatibility
-        if self.used:
-            raise ValueError(f'Pin {self.pin} is already assigned to function {self.assigned_function}.')
         if function == 'INPUT' and not self.is_input:
             raise ValueError(f'Pin {self.pin} does not support input mode.')
         if function == 'OUTPUT' and not self.is_output:
             raise ValueError(f'Pin {self.pin} does not support output mode.')
-        self.assigned_function = function
+        self.assigned_function.append(function)
 
         output = []
         # Strapping pin notes

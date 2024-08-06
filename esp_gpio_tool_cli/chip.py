@@ -87,7 +87,7 @@ class ESP:
                     continue
                 for function in peripheral.required_pins(instance):
                     for pin in self.gpios.values():
-                        if pin.assigned_function == function:
+                        if function in pin.assigned_function:
                             break
                     else:
                         out.append(

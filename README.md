@@ -93,7 +93,7 @@ python -m esp_gpio_tool
 
 The input file is expected to be in the YAML format. The file is expected to have a `chip` keyword in the header of the file. Without this header, the tool will assume the configuration file is for ESP32.
 
-The body of the file should contain your assignment of the GPIOs. A pin number is used as a key and a function as a value. Duplicated items are not allowed and will result in errors.
+The body of the file should contain your assignment of the GPIOs. A pin number is used as a key and a function as a value. Duplicated keys are not allowed by the YAML format but the value can be a single function or an array, however, it is not recommended to use the pin for multiple functions.
 
 Example:
 
@@ -101,6 +101,7 @@ Example:
 chip: esp32
 
 0: TOUCH0
+3: [LEDC_SIG_OUT0, LEDC_SIG_OUT1, RMT_SIG_IN0]
 ```
 
 ###### Peripheral Mode Selection
