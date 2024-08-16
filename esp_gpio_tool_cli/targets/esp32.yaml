@@ -38,15 +38,15 @@ peripheral:
     # SPI0 uses the same pins as SPI1 so actual count is 3
     count: 3 # SPI0, SPI1, SPI2 (HSPI), SPI3 (VSPI)
     subname: [ SPI, HSPI, VSPI ]
-    modes: [ Standard SPI, QSPI ]
+    modes: [ Single SPI, Dual SPI, Quad SPI ]
     # Note: D -> MOSI, Q -> MISO, CLK -> CLK, CS0 -> CS
     assigned_pins: [ "{subname}HD", "{subname}WP", "{subname}CS0", "{subname}CLK", "{subname}Q", "{subname}D" ]
     warning: {SPI: "SPI0 and SPI1 share the same SPI bus (same signals and IOs) and are used for connecting off-package flash and PSRAM"}
   SDMMC:
     count: 2
-    data_width: {'0': [1, 4, 8], '1': [1, 4]}
-    assigned_pins: [ "HS{count}_CLK", "HS{count}_CMD", "HS{count}_DATA{{data_width}}" ]
-    universal_pins: ["card_detect_n_{count}", "card_write_prt_{count}", "card_int_{count}"]  # optional card detect, write protect and interrupt pins
+    data_width: {'1': [1, 4, 8], '2': [1, 4]}
+    assigned_pins: [ "SDHOST_CCLK_{count}", "SDHOST_CCMD_{count}", "SDHOST_CDATA_{count}{{data_width}}" ]
+    universal_pins: [ "SDHOST_CARD_DETECT_{count}", "SDHOST_CARD_WRITE_PRT_{count}", "SDHOST_CARD_INT_{count}" ]  # optional card detect, write protect and interrupt pins
   SDIO:
     count: 2
     assigned_pins: [ "SD{count}_CLK", "SD{count}_CMD", "SD{count}_DATA{{data_width}}"]
@@ -83,27 +83,27 @@ memory:
 gpio:
   0:  { power_domain: VDD3P3_RTC, functions: [ ADC2_CH1, RTC_GPIO11, TOUCH1, EMAC_TX_CLK, CLK_OUT1 ], strapping: "High for SPI Boot; Low for Download Mode", at_reset: PUP}
   1:  { power_domain: VDD3P3_CPU, functions: [ U0TXD, EMAC_RXD2, CLK_OUT3 ], at_reset: PUP}
-  2:  { power_domain: VDD3P3_RTC, functions: [ ADC2_CH2, RTC_GPIO12, TOUCH2, HSPIWP, HS2_DATA0, SD1_DATA0 ], strapping: "Low for Download Mode", at_reset: PDOWN }
+  2:  { power_domain: VDD3P3_RTC, functions: [ ADC2_CH2, RTC_GPIO12, TOUCH2, HSPIWP, SDHOST_CDATA_20, SD1_DATA0 ], strapping: "Low for Download Mode", at_reset: PDOWN }
   3:  { power_domain: VDD3P3_CPU, functions: [ U0RXD, CLK_OUT2 ], at_reset: PUP}
-  4:  { power_domain: VDD3P3_RTC, functions: [ ADC2_CH0, RTC_GPIO10, TOUCH0, EMAC_TX_ER, HSPIHD, HS2_DATA1, SD1_DATA1 ], at_reset: PDOWN}
-  5:  { power_domain: VDD3P3_CPU, functions: [ HS1_DATA6, EMAC_RX_CLK, VSPICS0 ], strapping: "SDIO Slave timing adjustment", at_reset: PUP }
-  6:  { power_domain: VDD_SDIO,   functions: [ HS1_CLK, U1CTS, SD0_CLK, SPICLK ], reserved: ["In-Package Flash", "PSRAM", "Off-Package Flash"], at_reset: PUP}
-  7:  { power_domain: VDD_SDIO,   functions: [ HS1_DATA0, U2RTS, SD0_DATA0, SPIQ ], reserved: ["In-Package Flash", "PSRAM", "Off-Package Flash"], at_reset: PUP}
-  8:  { power_domain: VDD_SDIO,   functions: [ HS1_DATA1, U2CTS, SD0_DATA1, SPID ], reserved: ["In-Package Flash", "PSRAM", "Off-Package Flash"], at_reset: PUP}
-  9:  { power_domain: VDD_SDIO,   functions: [ HS1_DATA2, U1RXD, SD0_DATA2, SPIHD ], reserved: ["PSRAM", "Off-Package Flash"], at_reset: PUP}
-  10: { power_domain: VDD_SDIO,   functions: [ HS1_DATA3, U1TXD, SD0_DATA3, SPIWP ], reserved: ["PSRAM", "Off-Package Flash"], at_reset: PUP}
-  11: { power_domain: VDD_SDIO,   functions: [ HS1_CMD, U1RTS, SD0_CMD, SPICS0 ], reserved: ["In-Package Flash", "Off-Package Flash"], at_reset: PUP}
-  12: { power_domain: VDD3P3_RTC, functions: [ ADC2_CH5, RTC_GPIO15, MTDI, TOUCH5, EMAC_TXD3, HSPIQ, HS2_DATA2, SD1_DATA2 ], strapping: "Voltage of Internal LDO", at_reset: PDOWN }
-  13: { power_domain: VDD3P3_RTC, functions: [ ADC2_CH4, RTC_GPIO14, MTCK, TOUCH4, EMAC_RX_ER, HSPID, HS2_DATA3, SD1_DATA3 ]}
-  14: { power_domain: VDD3P3_RTC, functions: [ ADC2_CH6, RTC_GPIO16, MTMS, TOUCH6, EMAC_TXD2, HSPICLK, HS2_CLK, SD1_CLK ]}
-  15: { power_domain: VDD3P3_RTC, functions: [ ADC2_CH3, RTC_GPIO13, MTDO, TOUCH3, EMAC_RXD3, HSPICS0, HS2_CMD, SD1_CMD ], strapping: "Toggle for Debugging Log over UART0", at_reset: PUP }
-  16: { power_domain: VDD_SDIO,   functions: [ HS1_DATA4, U2RXD, EMAC_CLK_OUT ], reserved: ["In-Package Flash", "PSRAM"]}
-  17: { power_domain: VDD_SDIO,   functions: [ HS1_DATA5, U2TXD, EMAC_CLK_OUT_180 ], reserved: ["In-Package Flash"]}
-  18: { power_domain: VDD3P3_CPU, functions: [ HS1_DATA7, VSPICLK ]}
+  4:  { power_domain: VDD3P3_RTC, functions: [ ADC2_CH0, RTC_GPIO10, TOUCH0, EMAC_TX_ER, HSPIHD, SDHOST_CDATA_21, SD1_DATA1 ], at_reset: PDOWN}
+  5:  { power_domain: VDD3P3_CPU, functions: [ SDHOST_CDATA_16, EMAC_RX_CLK, VSPICS0 ], strapping: "SDIO Slave timing adjustment", at_reset: PUP }
+  6:  { power_domain: VDD_SDIO,   functions: [ SDHOST_CCLK_1, U1CTS, SD0_CLK, SPICLK ], reserved: ["In-Package Flash", "PSRAM", "Off-Package Flash"], at_reset: PUP}
+  7:  { power_domain: VDD_SDIO,   functions: [ SDHOST_CDATA_10, U2RTS, SD0_DATA0, SPIQ ], reserved: ["In-Package Flash", "PSRAM", "Off-Package Flash"], at_reset: PUP}
+  8:  { power_domain: VDD_SDIO,   functions: [ SDHOST_CDATA_11, U2CTS, SD0_DATA1, SPID ], reserved: ["In-Package Flash", "PSRAM", "Off-Package Flash"], at_reset: PUP}
+  9:  { power_domain: VDD_SDIO,   functions: [ SDHOST_CDATA_12, U1RXD, SD0_DATA2, SPIHD ], reserved: ["PSRAM", "Off-Package Flash"], at_reset: PUP}
+  10: { power_domain: VDD_SDIO,   functions: [ SDHOST_CDATA_13, U1TXD, SD0_DATA3, SPIWP ], reserved: ["PSRAM", "Off-Package Flash"], at_reset: PUP}
+  11: { power_domain: VDD_SDIO,   functions: [ SDHOST_CCMD_1, U1RTS, SD0_CMD, SPICS0 ], reserved: ["In-Package Flash", "Off-Package Flash"], at_reset: PUP}
+  12: { power_domain: VDD3P3_RTC, functions: [ ADC2_CH5, RTC_GPIO15, MTDI, TOUCH5, EMAC_TXD3, HSPIQ, SDHOST_CDATA_22, SD1_DATA2 ], strapping: "Voltage of Internal LDO", at_reset: PDOWN }
+  13: { power_domain: VDD3P3_RTC, functions: [ ADC2_CH4, RTC_GPIO14, MTCK, TOUCH4, EMAC_RX_ER, HSPID, SDHOST_CDATA_23, SD1_DATA3 ]}
+  14: { power_domain: VDD3P3_RTC, functions: [ ADC2_CH6, RTC_GPIO16, MTMS, TOUCH6, EMAC_TXD2, HSPICLK, SDHOST_CCLK_2, SD1_CLK ]}
+  15: { power_domain: VDD3P3_RTC, functions: [ ADC2_CH3, RTC_GPIO13, MTDO, TOUCH3, EMAC_RXD3, HSPICS0, SDHOST_CCMD_2, SD1_CMD ], strapping: "Toggle for Debugging Log over UART0", at_reset: PUP }
+  16: { power_domain: VDD_SDIO,   functions: [ SDHOST_CDATA_14, U2RXD, EMAC_CLK_OUT ], reserved: ["In-Package Flash", "PSRAM"]}
+  17: { power_domain: VDD_SDIO,   functions: [ SDHOST_CDATA_15, U2TXD, EMAC_CLK_OUT_180 ], reserved: ["In-Package Flash"]}
+  18: { power_domain: VDD3P3_CPU, functions: [ SDHOST_CDATA_17, VSPICLK ]}
   19: { power_domain: VDD3P3_CPU, functions: [ U0CTS, EMAC_TXD0, VSPIQ ]}
   21: { power_domain: VDD3P3_CPU, functions: [ EMAC_TX_EN, VSPIHD ]}
   22: { power_domain: VDD3P3_CPU, functions: [ U0RTS, EMAC_TXD1, VSPIWP ]}
-  23: { power_domain: VDD3P3_CPU, functions: [ HS1_STROBE, VSPID ]}
+  23: { power_domain: VDD3P3_CPU, functions: [ SDHOST_STROBE_1, VSPID ]}
   25: { power_domain: VDD3P3_RTC, functions: [ ADC2_CH8, RTC_GPIO6, DAC_1, EMAC_RXD0 ]}
   26: { power_domain: VDD3P3_RTC, functions: [ ADC2_CH9, RTC_GPIO7, DAC_2, EMAC_RXD1 ]}
   27: { power_domain: VDD3P3_RTC, functions: [ ADC2_CH7, RTC_GPIO17, TOUCH7. EMAC_RX_DV ]}
