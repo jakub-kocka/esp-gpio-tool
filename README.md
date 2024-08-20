@@ -21,7 +21,6 @@ It offers GPIO-related tools.
 
 - **GPIO assignment checker**: Checks if used GPIOs are correctly assigned to peripherals.
 
-
 ---
 
 - [Getting Started](#getting-started)
@@ -44,7 +43,8 @@ It offers GPIO-related tools.
 ### Usage
 
 1. Install the Python package
-   ```
+
+   ```sh
    pip install esp-gpio-tool
    ```
 
@@ -73,24 +73,28 @@ espins_cli check myconfig.yaml
 For details regarding the format of the input file please refer to the Input file section.
 
 #### GUI
+
 The GUI version of a user input for the `GPIO Assignment Checker` can be used.
 
 > [!NOTE]
 > If you want to use GUI for checker, install Python `Tkinter`.
 
-Debian-based Linux (Ubuntu, Debian, ...)
+Debian-based Linux (Ubuntu, Debian, etc.)
+
 ```sh
 sudo apt-get install python3-tk
 ```
 
-MacOS
+macOS
+
 ```sh
 brew install python-tk
 ```
 
-Windows - if not installed use the Python installer to modify the installation and check the `tcl``/tk` and IDLE` (or similar) option to be included in the installation.
+Windows - if not installed use the Python installer to modify the installation and check the `tcl/tk` and IDLE (or similar) option to be included in the installation.
 
 To invoke the GUI following command can be used:
+
 ```sh
 python -m esp_gpio_tool
 ```
@@ -105,7 +109,7 @@ espins check myconfig.yaml
 
 The input file is expected to be in the YAML format. The file is expected to have a `chip` keyword in the header of the file. Without this header, the tool will assume the configuration file is for ESP32.
 
-The body of the file should contain your assignment of the GPIOs. A pin number is used as a key and a function as a value. Duplicated keys are not allowed by the YAML format but the value can be a single function or an array, however, it is not recommended to use the pin for multiple functions.
+The body of the file should contain your assignment of the GPIOs. A pin number is used as a key and a function as a value. Duplicated keys are not allowed by the YAML format but the value can be a single function or an array. However, it is not recommended to use the pin for multiple functions.
 
 Example:
 
@@ -116,13 +120,13 @@ chip: esp32
 3: [LEDC_SIG_OUT0, LEDC_SIG_OUT1, RMT_SIG_IN0]
 ```
 
-###### Peripheral Mode Selection
+##### Peripheral Mode Selection
 
 Some peripherals support changing modes of operation. The mode you select may require a different subset of the peripheral's pins. This helps the tool understand your needs and adjust its checks accordingly.
 
 To see a list of supported modes, check the datasheet of your selected chip. Alternatively, you can check the definition in the `esp_gpio_tool/targets/` folder. Here, you'll find your selected chip and can get a list of supported modes based on the peripheral.
 
-If you select a mode that the peripheral doesn't support, the checker won't consider the mode change. Instead, it will continue in its default state and provide a list of supported modes.
+If you select a mode that the peripheral does not support, the checker will not consider the mode change. Instead, it will continue in its default state and provide a list of supported modes.
 
 Here's an example of a config file where the Quad mode of HSPI is selected:
 
@@ -141,9 +145,7 @@ peripheral:
 15: HSPICS0
 ```
 
-
 ---
-
 
 ## CI/CD Overview
 
@@ -155,7 +157,6 @@ This project includes a basic GitLab CI configuration with the following jobs:
 - **Shared CI Danger**: A standard Espressif linting tool for merge requests.
 - **Pytest**: Runs tests and coverage, integrated with the GitLab UI.
 - **Pylint**: Lints code in accordance with Python best practices.
-
 
 ### GitHub Actions
 
