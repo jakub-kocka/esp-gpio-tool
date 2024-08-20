@@ -4,6 +4,9 @@ import pytest
 
 from esp_gpio_tool_cli.checker import run_check
 from esp_gpio_tool_cli.chip import SUPPORTED_CHIPS
+from esp_gpio_tool_cli.logger import Logger
+
+Logger().use_unicode(False)
 
 
 def run(config: str) -> list[str]:
@@ -63,7 +66,10 @@ def test_valid_config_multiple_functions() -> None:
     3: [LEDC_SIG_OUT0, LEDC_SIG_OUT1, RMT_SIG_IN0]
     """
     result = run(config)
-    assert 'Warning: Pin 3 has been used multiple times, this may be a mistake, please be aware.' in result
+    assert (
+        'Warning: Pin 3 has been used multiple times, reusing pins is not recommended. '
+        'Assigned functions: LEDC_SIG_OUT0, LEDC_SIG_OUT1, RMT_SIG_IN0' in result
+    )
 
 
 def test_invalid_pin_format() -> None:

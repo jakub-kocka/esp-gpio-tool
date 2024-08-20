@@ -7,6 +7,9 @@ import yaml
 
 from esp_gpio_tool_cli.chip import ESP
 from esp_gpio_tool_cli.chip import SUPPORTED_CHIPS
+from esp_gpio_tool_cli.logger import Logger
+
+logger = Logger()
 
 
 # Create a custom YAML loader that checks for duplicate keys
@@ -32,14 +35,13 @@ def load_user_input(input_string: str) -> dict[str, str]:
 
 
 def run_check(user_input: str | dict) -> list[str]:
-    output = []
     if isinstance(user_input, str):
         data = load_user_input(user_input)
     else:
         data = user_input
     # get the chip name and verify if it is supported
     if 'chip' not in data.keys():
-        output.append('Warning: Chip name not found in input file. Assuming ESP32.')
+        logger.warn('Chip name not found in input file. Assuming ESP32.')
     chip_name = data.pop('chip', 'esp32')
     if chip_name not in SUPPORTED_CHIPS:
         raise SystemExit(f"Error: Invalid chip: '{chip_name}'. Supported chips: {SUPPORTED_CHIPS}.")
@@ -53,62 +55,48 @@ def run_check(user_input: str | dict) -> list[str]:
             for i, mode in value.items():
                 per.set_mode(str(i), mode)
         except ValueError as err:
-            output.append(f'Error: {err}. Mode was NOT changed!')
-
-    # check if the pin is used multiple times and print warning
-    for pin, fnc in data.items():
-        if isinstance(fnc, list):
-            output.append(f'Warning: Pin {pin} has been used multiple times, this may be a mistake, please be aware.')
+            logger.error(f'{err}. Mode was NOT changed!')
 
     # go through the yaml file and check if the pins have valid configuration for selected target
     for key, fun_value in data.items():
         try:
             num = int(key)
         except ValueError:
-            output.append(f'Error: Unknown key in yaml: {key}. Skipping.')
+            logger.error(f'Unknown key in yaml: {key}. Skipping.')
             continue
         # Check if the pin is valid
         if num not in esp.gpios.keys():
-            output.append(f'Error: Pin {num} not found for {esp.name}.')
+            logger.error(f'Pin {num} not found for {esp.name}.')
             continue
 
         try:
-            if isinstance(fun_value, list):
-                for fnc in fun_value:
-                    if fnc not in ['INPUT', 'OUTPUT']:
-                        # Check if the function is valid and get the peripheral
-                        per = esp.get_peripheral_from_function(fnc)
-
-                        # Check if the pin can be used for the function and mark peripheral as used
-                        per.use(fnc, esp.gpios[num])
-            elif fun_value not in ['INPUT', 'OUTPUT']:
-                # Check if the function is valid and get the peripheral
-                per = esp.get_peripheral_from_function(fun_value)
-
-                # Check if the pin can be used for the function and mark peripheral as used
-                note = per.use(fun_value, esp.gpios[num])
-                if note is not None:
-                    output.append(note)
-
-            # Check if the pin supports the function
-            if isinstance(fun_value, list):
-                for fnc in fun_value:
-                    output.extend(esp.gpios[num].assign_function(fnc))
+            if not isinstance(fun_value, list):
+                fun_list = [fun_value]
             else:
-                output.extend(esp.gpios[num].assign_function(fun_value))
+                fun_list = fun_value
+            for pin in fun_list:
+                if pin not in ['INPUT', 'OUTPUT']:
+                    # Check if the function is valid and get the peripheral
+                    per = esp.get_peripheral_from_function(pin)
+
+                    # Check if the pin can be used for the function and mark peripheral as used
+                    per.use(pin, esp.gpios[num])
+
+                # Check if the pin supports the function
+                esp.gpios[num].assign_function(pin)
         except ValueError as err:
-            output.append(f'Error: {err}')
+            logger.error(str(err))
             continue
 
+    # check if the pin is used multiple times and print warning
+    for gpio in esp.gpios.values():
+        if len(gpio.assigned_function) > 1:
+            logger.warn(
+                f'Pin {gpio.pin} has been used multiple times, reusing pins is not recommended. '
+                f'Assigned functions: {", ".join(gpio.assigned_function)}'
+            )
+
     # check if all peripherals that has been used have all non-optional pins used
-    output.extend(esp.check())
-    if not output:
-        output.append('All checks passed.')
-
-    # clear the output from duplicates (may occur when the pin is used multiple times)
-    real_output = []
-    for out in output:
-        if out not in real_output:
-            real_output.append(out)
-
-    return real_output
+    esp.check()
+    out = logger.get_output()
+    return out

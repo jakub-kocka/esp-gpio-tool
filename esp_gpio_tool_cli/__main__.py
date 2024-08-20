@@ -4,12 +4,15 @@ import click
 
 from esp_gpio_tool_cli import __version__
 from esp_gpio_tool_cli.checker import run_check
+from esp_gpio_tool_cli.logger import Logger
 
 
 @click.group(no_args_is_help=True)
 @click.version_option(__version__)
-def main() -> None:
-    pass
+@click.option('--no-unicode', is_flag=True, help='Disable Unicode characters in the output.')
+def main(no_unicode: bool = False) -> None:
+    """ESP GPIO Tool CLI"""
+    Logger().use_unicode(not no_unicode)
 
 
 @main.command()
