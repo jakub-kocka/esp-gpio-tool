@@ -156,7 +156,7 @@ def test_SDIO_mode(mode: str) -> None:
         SDIO:
             0: {mode}
 
-    6 : SD0_CLK
+    6:  SD0_CLK
     7:  SD0_DATA0
     8:  SD0_DATA1
     9:  SD0_DATA2
@@ -175,10 +175,46 @@ def test_SDIO_mode_missing_pins() -> None:
         SDIO:
             0: 4
 
-    6 : SD0_CLK
+    6:  SD0_CLK
     7:  SD0_DATA0
     11: SD0_CMD
     """
     out = '\n'.join(run(config))
     for pin in ['SD0_DATA1', 'SD0_DATA2', 'SD0_DATA3']:
         assert f'Error: Required function {pin} from peripheral SDIO is not assigned to any pin.' in out
+
+
+def test_soc_not_found() -> None:
+    config = """
+    chip: esp32
+    soc: foo
+    """
+    with pytest.raises(SystemExit) as exc_info:
+        run(config)
+    assert 'Error: SoC "foo" is not supported variant of esp32. Supported SoCs: ' in exc_info.value.args[0]
+
+
+@pytest.mark.parametrize('soc, nc_pins', [('ESP32-PICO-V3', [16, 17, 18, 23]), ('ESP32-D0WD-V3', [20])])
+def test_soc_filter_gpios(soc: str, nc_pins: list[int]) -> None:
+    config = f"""
+    chip: esp32
+    soc: {soc}
+    """
+    for pin in nc_pins:
+        config += f'\n    {pin}: ADC1_CH0'
+    out = run(config)
+    for pin in nc_pins:
+        assert f'Error: Pin {pin} not found for esp32({soc}).' in out
+
+
+def test_flash_pin_reuse() -> None:
+    config = """
+    chip: esp32
+    soc: ESP32-PICO-V3
+    6: U1CTS
+    """
+    out = run(config)
+    assert (
+        'Warning: Pin 6 has been used multiple times, reusing pins is not recommended. '
+        'Assigned functions: Flash/PSRAM, U1CTS' in out
+    )

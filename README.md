@@ -111,10 +111,13 @@ The input file is expected to be in the YAML format. The file is expected to hav
 
 The body of the file should contain your assignment of the GPIOs. A pin number is used as a key and a function as a value. Duplicated keys are not allowed by the YAML format but the value can be a single function or an array. However, it is not recommended to use the pin for multiple functions.
 
+There is also an optional key `soc` to specify which SoC is going to be used. This parameter can help to better define limitations of selected SoC, like not connected pins, in-package Flash/PSRAM that occupies some pins etc. The value is MPN (Manufacturer Part Number) which can be found on the package itself or in the [Product Selector](https://products.espressif.com/#/product-selector).
+
 Example:
 
 ```yaml
 chip: esp32
+soc: ESP32-PICO-V3
 
 0: TOUCH0
 3: [LEDC_SIG_OUT0, LEDC_SIG_OUT1, RMT_SIG_IN0]
