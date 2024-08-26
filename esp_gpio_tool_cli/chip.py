@@ -6,12 +6,15 @@ import sys
 
 import yaml
 
+from esp_gpio_tool_cli.logger import Logger
 from esp_gpio_tool_cli.peripheral import *  # noqa: F403; pylint: disable=wildcard-import, unused-wildcard-import
 from esp_gpio_tool_cli.peripheral import BasePeripheral
 from esp_gpio_tool_cli.pin import Pin
 
 CONFIG_DIR = os.path.join(os.path.dirname(__file__), 'targets/')
 SUPPORTED_CHIPS = [filename.split('.')[0] for filename in os.listdir(CONFIG_DIR)]
+
+logger = Logger()
 
 
 def load_config(target: str) -> dict[str, dict]:
@@ -78,9 +81,8 @@ class ESP:
                 return peripheral
         raise ValueError(f'Function {function} not found in peripherals for {self.name}.')
 
-    def check(self) -> list[str]:
+    def check(self) -> None:
         """Check if required pins by each used peripheral are assigned"""
-        out = []
         for peripheral in self.used_peripherals:
             for instance, used in peripheral.used.items():
                 if not used:
@@ -90,8 +92,7 @@ class ESP:
                         if function in pin.assigned_function:
                             break
                     else:
-                        out.append(
-                            f'Error: Required function {function} from peripheral {peripheral.name} '
+                        logger.error(
+                            f'Required function {function} from peripheral {peripheral.name} '
                             'is not assigned to any pin.'
                         )
-        return out
