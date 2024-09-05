@@ -27,18 +27,36 @@ def load_config(target: str) -> dict[str, dict]:
             raise SystemExit(exc) from exc
 
 
+class SOC:
+    mpn: str  # Manufacturer Part Number
+    reserved_pins: list[int]
+    not_connected_pins: list[int]
+
+    def __init__(self, mpn: str, reserved_pins: list[int] = None, not_connected: list[int] = None) -> None:
+        self.mpn = mpn
+        self.reserved_pins = reserved_pins or []
+        self.not_connected_pins = not_connected or []
+
+    def __str__(self) -> str:
+        return self.mpn
+
+    def __repr__(self) -> str:
+        return f'<SOC: {self.mpn}>'
+
+
 class ESP:
     gpios: dict[int, Pin]
     peripherals: list[BasePeripheral]
-    memory: (
-        str | None
-    )  # TODO: add option to pick memory type of the chip, and disable selected pins based on the selection
+    soc_list: list[SOC]
+    selected_soc: SOC | None
 
     def __init__(self, name: str) -> None:
         self.name = name
         self.config = load_config(name)
         self.load_pins()
         self.load_peripherals()
+        self.load_socs()
+        self.selected_soc = None
 
     @property
     def assigned_pins(self) -> list[Pin]:
@@ -66,6 +84,35 @@ class ESP:
     def load_peripherals(self) -> None:
         """Load peripherals from config"""
         self.peripherals = [self._str_to_class(peri)(**data) for peri, data in self.config['peripheral'].items()]
+
+    def load_socs(self) -> None:
+        """Load supported SoCs from config"""
+        soc_list = self.config.get('soc', {})
+        self.soc_list = [SOC(mpn, **data) for mpn, data in soc_list.items()]
+
+    def set_soc(self, soc_mpn: str) -> None:
+        """Set used SoC and update available pins"""
+        for soc_class in self.soc_list:
+            if soc_class.mpn == soc_mpn:
+                soc = soc_class
+                break
+        else:
+            raise SystemExit(
+                f'Error: SoC "{soc_mpn}" is not supported variant of {self.name}. '
+                f'Supported SoCs: {", ".join([x.mpn for x in self.soc_list])}'
+            )
+
+        if self.selected_soc == soc:
+            return
+        # reload pins to its default state
+        self.load_pins()
+        # set reserved pins
+        for pin in soc.reserved_pins:
+            self.gpios[pin].assign_function('Flash/PSRAM')
+        # set not connected pins
+        for pin in soc.not_connected_pins:
+            self.gpios.pop(pin)
+        self.selected_soc = soc
 
     def get_peripheral(self, name: str) -> BasePeripheral:
         """Return peripheral with the given name"""

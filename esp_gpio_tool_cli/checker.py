@@ -46,6 +46,10 @@ def run_check(user_input: str | dict) -> list[str]:
     if chip_name not in SUPPORTED_CHIPS:
         raise SystemExit(f"Error: Invalid chip: '{chip_name}'. Supported chips: {SUPPORTED_CHIPS}.")
     esp = ESP(chip_name)
+    try:
+        esp.set_soc(data.pop('soc'))
+    except KeyError:
+        pass  # soc is optional
     peripherals: dict[str, dict[str, str]] | Any = data.pop('peripheral', {})
     if not isinstance(peripherals, dict):
         raise SystemExit('Error: Invalid format: Peripheral section must be a dictionary.')
@@ -66,7 +70,7 @@ def run_check(user_input: str | dict) -> list[str]:
             continue
         # Check if the pin is valid
         if num not in esp.gpios.keys():
-            logger.error(f'Pin {num} not found for {esp.name}.')
+            logger.error(f'Pin {num} not found for {esp.name}{f"({esp.selected_soc})" if esp.selected_soc else ""}.')
             continue
 
         try:

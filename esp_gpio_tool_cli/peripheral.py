@@ -180,7 +180,8 @@ class SPI(BasePeripheral):
         pins = {}
         for instance in self.instances:
             if self.mode[instance] in ['Single SPI', 'Dual SPI']:
-                pins[instance] = ['SPICS0', 'SPICS1', 'SPICLK', 'SPIQ', 'SPID']
+                regex = re.compile(r'.?SPI\d?(CS\d?|CLK|Q|D)')
+                pins[instance] = [p for p in self._assigned_pins[instance] if regex.match(p)]
             elif self.mode[instance] in ['Quad SPI', 'QPI']:
                 pins[instance] = list(
                     filter(

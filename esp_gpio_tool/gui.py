@@ -102,7 +102,15 @@ class GUI:
             values=SUPPORTED_CHIPS,
         )
         chips_cmb.current(0)
-        chips_cmb.pack(side=tk.LEFT, anchor=tk.CENTER, expand=True)
+        chips_cmb.pack(side=tk.LEFT, anchor=tk.E, expand=True)
+
+        variants_cmb = ttk.Combobox(
+            master=header_frm,
+            state='readonly',
+            justify='center',
+            values=['-'] + [str(soc) for soc in ESP(chips_cmb.get()).soc_list],
+        )
+        variants_cmb.pack(side=tk.LEFT, anchor=tk.W, expand=True)
 
         check_btn = tk.Button(master=header_frm, text='Check GPIOs')
         check_btn.pack(side=tk.RIGHT, anchor=tk.E)
@@ -114,6 +122,9 @@ class GUI:
             - prepares user defined GPIOs for checker input and runs checker
             """
             user_gpios: dict[str, str | list] = {'chip': chips_cmb.get()}
+            variant = variants_cmb.get()
+            if variant not in ['-', 'Optional SoC variant']:
+                user_gpios['soc'] = variant
             for pin, value in pins_values.items():
                 gpio = value.get()
                 if gpio == '-':
@@ -187,11 +198,17 @@ class GUI:
 
         container.bind('<Configure>', on_container_configure)
 
-        def chip_selection_changed(event: (tk.Event | None)) -> None:
+        def chip_selection_changed(event: (tk.Event | None), variant: bool = False) -> None:
             """Target selected from chips Combobox event handler
             - draws all the peripherals, sub-peripherals and pins with a Combobox to fill the GPIOs
             """
             target = ESP(chips_cmb.get())
+            if variant:
+                if variants_cmb.get() != '-':
+                    target.set_soc(variants_cmb.get())
+            else:
+                variants_cmb['values'] = ['-'] + target.soc_list
+                variants_cmb.set('Optional SoC variant')
             self.gpios = []
             for gpio_num, gpio in target.gpios.items():
                 self.gpios.append(f'GPIO{gpio_num} - {gpio.power_domain}')
@@ -367,6 +384,7 @@ class GUI:
             canvas.bind('<Button-5>', on_mousewheel_linux_up)
 
         chips_cmb.bind('<<ComboboxSelected>>', chip_selection_changed)
+        variants_cmb.bind('<<ComboboxSelected>>', lambda event: chip_selection_changed(event, variant=True))
         gui.option_add('*TCombobox*Listbox.Justify', 'center')
 
         chip_selection_changed(event=None)

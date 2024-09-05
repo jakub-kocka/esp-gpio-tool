@@ -2,6 +2,7 @@ peripheral:
   ADC:
     count: 2
     channels: 10
+    # TODO: ADC2 cannot be used with WiFi connection
     assigned_pins: [ "ADC{count}_CH{{channel}}" ]
   UART:
     count: 3
@@ -84,10 +85,6 @@ peripheral:
       'CAM': [ 8 bit - Slave RX Mode, 16 bit - Slave RX Mode, 8 bit - Master RX Mode, 16 bit - Master RX Mode]
     }
 
-
-# memory: # TODO implement reserved pins
-#   ["In-Package Flash", "Off-Package Flash", "PSRAM"]
-
 # Note: PUP (wpu in datasheet) - pull up resistor enabled; PDOWN (wpd) - pull down resistor enabled
 # Note: USB_OTG_EXT_VMO and USB_EXT_VMO (and similar USB related functions which contains "OTG") are the same as without "OTG" part, split into two only for later resolution by the checker
 gpio:
@@ -120,8 +117,6 @@ gpio:
   30: { power_domain: VDD_SPI,        functions: ['SPICLK'], at_reset: PUP }
   31: { power_domain: VDD_SPI,        functions: ['SPIQ'], at_reset: PUP }
   32: { power_domain: VDD_SPI,        functions: ['SPID'], at_reset: PUP }
-  48: { power_domain: VDD_SPI,        functions: ['SPICLK_DIFF', 'SUBSPICLK_DIFF'] }
-  47: { power_domain: VDD_SPI,        functions: ['SPICLK_DIFF', 'SUBSPICLK_DIFF'] }
   33: { power_domain: VDD_SPI/VDD3P3_CPU,     functions: ['FSPIHD', 'SUBSPIHD', 'SPIIO4'] }
   34: { power_domain: VDD_SPI/VDD3P3_CPU,     functions: ['FSPICS0', 'SUBSPICS0', 'SPIIO5'] }
   35: { power_domain: VDD_SPI/VDD3P3_CPU,     functions: ['FSPID', 'SUBSPID', 'SPIIO6'] }
@@ -136,3 +131,16 @@ gpio:
   44: { power_domain: VDD3P3_CPU,     functions: ['U0RXD', 'CLK_OUT2'], at_reset: PUP }
   45: { power_domain: VDD3P3_CPU,     functions: [], strapping: "VDD_SPI Voltage select", at_reset: PDOWN }
   46: { power_domain: VDD3P3_CPU,     functions: [], strapping: "UART print en/Low for Download Mode (ignored when GPIO0 is High)", at_reset: PDOWN }
+  47: { power_domain: VDD_SPI,        functions: ['SPICLK_DIFF', 'SUBSPICLK_DIFF'] }
+  48: { power_domain: VDD_SPI,        functions: ['SPICLK_DIFF', 'SUBSPICLK_DIFF'] }
+
+soc:
+  ESP32-S3-PICO-1-N8R8: {reserved_pins: [26, 33, 34, 35, 36, 37], not_connected: [27, 28, 29, 30, 31, 32]}   # quad flash + octal PSRAM
+  ESP32-S3-PICO-1-N8R2: {reserved_pins: [26], not_connected: [27, 28, 29, 30, 31, 32]}  # quad flash + quad PSRAM
+  ESP32-S3FH4R2: {reserved_pins: [26, 27, 28, 29, 30, 31, 32]}  # quad flash + quad PSRAM
+  ESP32-S3FN8: {reserved_pins: [27, 28, 29, 30, 31, 32]}  # quad flash
+  ESP32-S3R8V: {reserved_pins: [26, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37]}  # octal PSRAM
+  ESP32-S3R16V: {reserved_pins: [26, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37]}  # octal PSRAM
+  ESP32-S3R8: {reserved_pins: [26, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37]}  # octal PSRAM
+  ESP32-S3R2: {reserved_pins: [26, 28, 29, 30, 31, 32]}  # quad PSRAM
+  ESP32-S3: {reserved_pins: []}
