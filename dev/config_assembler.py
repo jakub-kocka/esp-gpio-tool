@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -22,6 +23,9 @@ def _functions_builder(file: pd.DataFrame) -> list[list[str]]:
     for i, val in enumerate(file['Digital Function1']):
         pin_fncs = []
         for fnc in fnc_names:
+            if file.get(fnc) is None:
+                # There might be some columns missing in the excel file
+                continue
             if file[fnc][i] == val:
                 continue
             if not pd.isna(file[fnc][i]):
@@ -41,6 +45,9 @@ def _yaml_builder(
     """Print YAML-like format which can be used directly in the configuration file"""
     print('gpio:')
     for i, pin in enumerate(gpios):
+        if pd.isna(pin):
+            # lines with some note but empty pin number
+            continue
         pin = pin.split('GPIO')[1]
         line = ''
         line += f'\t{pin}:\t{{ power_domain: {power_domain[i]}'
