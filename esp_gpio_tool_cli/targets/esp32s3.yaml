@@ -2,7 +2,6 @@ peripheral:
   ADC:
     count: 2
     channels: 10
-    # TODO: ADC2 cannot be used with WiFi connection
     assigned_pins: [ "ADC{count}_CH{{channel}}" ]
   UART:
     count: 3

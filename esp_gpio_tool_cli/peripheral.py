@@ -150,6 +150,12 @@ class ADC(BasePeripheral):
                 self._assigned_pins[instance].extend([pin.format(channel=str(i)) for i in range(channels[instance])])
         return pins
 
+    def use(self, function: str, pin: Pin) -> None:
+        """Check ADC specific limitations"""
+        if function.startswith('ADC2') and not self.used['2']:
+            logger.warn('ADC2 cannot be used in combination with Wi-Fi.')
+        super().use(function, pin)
+
 
 class DAC(BasePeripheral):
     def __init__(
