@@ -18,7 +18,7 @@ class BasePeripheral:
     def __init__(
         self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
     ) -> None:
-        self.common_prefix = self.name
+        self.common_prefix = kwargs.get('common_prefix', self.name)
         # number of peripheral instances
         self.count = count
 
@@ -95,7 +95,8 @@ class BasePeripheral:
     def unwrap_pins(self, pins: list[str] | None) -> dict[str, list[str]]:
         """Convert wildcard pins to actual pins, e.g.
         - DAC_{count} -> {1: [DAC_1], 2: [DAC_2]]
-        -{subname}_PCLK -> {LCD: [LCD_PCLK], CAM: [CAM_PCLK]]
+        - {subname}_PCLK -> {LCD: [LCD_PCLK], CAM: [CAM_PCLK]]
+        - [U1TX, U2TX] -> {1: [U1TX], 2: [U2TX]}
         """
         output: dict[str, list[str]] = {}
         if pins is not None:
@@ -107,6 +108,12 @@ class BasePeripheral:
                         # replace wildcard with counter of peripheral instance
                         output[i].append(pin.format(**{self._replace_keyword: str(i)}))
                 else:
+                    if r'\d' in self.common_prefix:
+                        # if common prefix contains digit, use it as instance number
+                        instance = re.search(r'\d', pin)
+                        if instance:
+                            output[instance.group()].append(pin)
+                            continue
                     output[str(self.start_cnt)].append(pin)
         return output
 
@@ -170,9 +177,13 @@ class SPI(BasePeripheral):
         self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
     ) -> None:
         super().__init__(
-            count, assigned_pins, universal_pins, instances=kwargs.get('subname'), _replace_keyword='subname'
+            count,
+            assigned_pins,
+            universal_pins,
+            instances=kwargs.get('subname'),
+            _replace_keyword='subname',
+            common_prefix=r'.?SPI',
         )
-        self.common_prefix = r'.?SPI'
         modes: list | dict = kwargs.get('modes', [])
         # modes can be set in list format if same for all the sub-peripherals or in dict to specify exactly
         if isinstance(modes, list):
@@ -224,7 +235,7 @@ class I2S(BasePeripheral):
         super().__init__(count, assigned_pins, universal_pins)
 
     def check_pin_function(self, instance: str, function: str, pin: Pin) -> None:
-        if function.endswith('_CLK'):
+        if function.endswith('_CLK') and function in self.assigned_pins[instance]:
             if not any(fun.startswith('CLK_OUT') for fun in pin.functions):
                 raise ValueError(f'Pin {pin.pin} does not support CLK_OUT, which is required for {function}.')
 
@@ -241,9 +252,8 @@ class UART(BasePeripheral):
     def __init__(
         self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
     ) -> None:
-        super().__init__(count, assigned_pins, universal_pins)
+        super().__init__(count, assigned_pins, universal_pins, common_prefix=r'U\d.')
         self.optional_pins = self.unwrap_pins(['U{count}CTS', 'U{count}RTS'])
-        self.common_prefix = r'U\d.'
         # TODO print warning if 0 instance is used? probably on PIN side or make UART0 turned on by default?
 
     def check_pin_function(self, instance: str, function: str, pin: Pin) -> None:
@@ -262,8 +272,7 @@ class SDIO(BasePeripheral):
     def __init__(
         self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
     ) -> None:
-        super().__init__(count, assigned_pins, universal_pins, **kwargs)
-        self.common_prefix = 'SD'
+        super().__init__(count, assigned_pins, universal_pins, common_prefix='SD', **kwargs)
         self.supported_modes = kwargs.get('data_width', {str(i): [1] for i in self.instances})
         self.mode = {str(i): 1 for i in self.instances}
         self.mode_label = 'Data width'
@@ -303,8 +312,7 @@ class SDMMC(BasePeripheral):
     def __init__(
         self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
     ) -> None:
-        super().__init__(count, assigned_pins, universal_pins, start_cnt=1, **kwargs)
-        self.common_prefix = 'SDHOST'
+        super().__init__(count, assigned_pins, universal_pins, start_cnt=1, common_prefix='SDHOST', **kwargs)
         self.supported_modes = kwargs.get('data_width', {str(i): [1] for i in self.instances})
         self.mode = {str(i): 1 for i in self.instances}
         self.mode_label = 'Data width'
@@ -469,8 +477,7 @@ class CLKOUT(BasePeripheral):
     def __init__(
         self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
     ) -> None:
-        super().__init__(count, assigned_pins, universal_pins, start_cnt=1, **kwargs)
-        self.common_prefix = 'CLK_OUT'
+        super().__init__(count, assigned_pins, universal_pins, start_cnt=1, common_prefix='CLK_OUT', **kwargs)
         self.optional_pins = self.assigned_pins  # all pins are optional
 
 
@@ -498,10 +505,9 @@ class XTAL32K(BasePeripheral):
     def __init__(
         self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
     ) -> None:
-        super().__init__(count, assigned_pins, universal_pins, **kwargs)
+        super().__init__(count, assigned_pins, universal_pins, common_prefix='XTAL_32K_', **kwargs)
         # based on usage, pins can be optional
         self.optional_pins = self.assigned_pins  # all pins are optional
-        self.common_prefix = 'XTAL_32K_'
 
 
 class USBOTG(BasePeripheral):
@@ -510,8 +516,7 @@ class USBOTG(BasePeripheral):
     def __init__(
         self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
     ) -> None:
-        super().__init__(count, assigned_pins, universal_pins, **kwargs)
-        self.common_prefix = r'USB_OTG'
+        super().__init__(count, assigned_pins, universal_pins, common_prefix=r'USB_OTG', **kwargs)
 
 
 class USBSERIALJTAG(BasePeripheral):
@@ -520,8 +525,7 @@ class USBSERIALJTAG(BasePeripheral):
     def __init__(
         self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
     ) -> None:
-        super().__init__(count, assigned_pins, universal_pins, **kwargs)
-        self.common_prefix = r'USB(?!_OTG).'
+        super().__init__(count, assigned_pins, universal_pins, common_prefix=r'USB(?!_OTG).', **kwargs)
 
 
 class LCDCAM(BasePeripheral):
@@ -531,9 +535,13 @@ class LCDCAM(BasePeripheral):
         self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
     ) -> None:
         super().__init__(
-            count, assigned_pins, universal_pins, instances=kwargs.get('subname'), _replace_keyword='subname'
+            count,
+            assigned_pins,
+            universal_pins,
+            instances=kwargs.get('subname'),
+            _replace_keyword='subname',
+            common_prefix=r'LCD|CAM',
         )
-        self.common_prefix = r'LCD|CAM'
         # modes can be set in list format if same for all the sub-peripherals or in dict to specify exactly
         modes: list | dict = kwargs.get('modes', [])
         if isinstance(modes, list):
