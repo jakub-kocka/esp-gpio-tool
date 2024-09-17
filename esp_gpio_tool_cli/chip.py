@@ -3,6 +3,7 @@
 import os
 import re
 import sys
+from functools import cached_property
 
 import yaml
 
@@ -73,6 +74,12 @@ class ESP:
         """Return peripherals that have been used"""
         return [peripheral for peripheral in self.peripherals if any(peripheral.used.values())]
 
+    @cached_property
+    def reassignable_peripherals_regex(self) -> str:
+        """Return regex for common prefixes of peripherals that can be reassigned"""
+        prefix_list = [peripheral.common_prefix for peripheral in self.peripherals if peripheral.reassignable]
+        return rf"({'|'.join(prefix_list)})"
+
     def _str_to_class(self, name: str) -> type[BasePeripheral]:
         """Convert name to class; defaults to `BasePeripheral` if class not found"""
         return getattr(sys.modules[__name__], name, BasePeripheral)
@@ -127,6 +134,22 @@ class ESP:
             if re.match(rf'^{peripheral.common_prefix}', function):
                 return peripheral
         raise ValueError(f'Function {function} not found in peripherals for {self.name}.')
+
+    def list_pins_by_function(self, function: str) -> list[Pin]:
+        """Return list of pins that can be assigned to the function. Mainly used for filtering 'assigned_pins'"""
+        pins = []
+        universal_periph = re.match(self.reassignable_peripherals_regex, function)
+        # TODO: this is not filtering for cases like I2S_CLK on ESP32, which has to be assigned to CLK_OUT* pin
+        # But this limitation will be caught later in `assign_function` method
+        if not universal_periph:
+            # peripheral does not support reassignment; filter out pins based on 'assigned_pins'
+            for pin in self.gpios.values():
+                if function in pin.functions:
+                    pins.append(pin)
+        if not pins:
+            # no restriction on function; return all pins
+            pins = self.free_pins
+        return pins
 
     def check(self) -> None:
         """Check if required pins by each used peripheral are assigned"""
