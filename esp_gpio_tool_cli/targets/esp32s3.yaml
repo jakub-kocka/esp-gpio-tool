@@ -2,7 +2,6 @@ peripheral:
   ADC:
     count: 2
     channels: 10
-    # TODO: ADC2 cannot be used with WiFi connection
     assigned_pins: [ "ADC{count}_CH{{channel}}" ]
   UART:
     count: 3
@@ -13,7 +12,6 @@ peripheral:
   JTAG:
     count: 1
     assigned_pins: [ MTCK, MTDO, MTMS, MTDI ]
-    warning: "JTAG assigned_pins are shared with GPIO assigned_pins"  # TODO: move warning text to python code?
   TOUCH:
     count: 14
     start_cnt: 1
@@ -23,8 +21,7 @@ peripheral:
     universal_pins: [ "I2C{count}_SCL", "I2C{count}_SDA" ]
   I2S:
     count: 2
-    universal_pins: ["I2S{count}_WS", "I2S{count}_SD"]
-    assigned_pins: [ "I2S{count}_CLK" ] # Note: I2S_CLK has to be from CLK_OUT* pins
+    universal_pins: ["I2S{count}_WS", "I2S{count}_SD", "I2S{count}_CLK" ]
   SPI:
     # TODO SUBSPI
     # SPI0/1 interface for connection to in-package or off-package flash/PSRAM via SUBSPI bus (separate

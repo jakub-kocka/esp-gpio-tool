@@ -15,7 +15,6 @@ peripheral:
   JTAG:
     count: 1
     assigned_pins: [ MTCK, MTDO, MTMS, MTDI ]
-    warning: "JTAG assigned_pins are shared with GPIO assigned_pins"  # TODO: move warning text to python code?
   TOUCH:
     count: 10
     assigned_pins: [ "TOUCH{count}" ]
