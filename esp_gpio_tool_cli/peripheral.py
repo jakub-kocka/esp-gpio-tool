@@ -42,6 +42,8 @@ class BasePeripheral:
         self.mode: dict[str, str | int] = {}  # {"HSPI": "Single SPI", "VSPI": "Quad SPI"}
         self.mode_label: str | None = None  # Used only if mode is not self descriptive enough (for GUI mostly)
 
+        self.reassignable = False  # if assigned pins can be reassigned to any pin with GPIO matrix
+
     def __str__(self) -> str:
         return f'{self.name}(assigned_pins={self.assigned_pins}, universal_pins={self.universal_pins})'
 
@@ -191,6 +193,7 @@ class SPI(BasePeripheral):
         elif isinstance(modes, dict):
             self.supported_modes = modes
         self.mode = {i: 'Single SPI' for i in self.instances}
+        self.reassignable = True
 
     @property
     def assigned_pins(self) -> dict[str, list[str]]:
@@ -211,7 +214,7 @@ class SPI(BasePeripheral):
 
     def check_pin_function(self, instance: str, function: str, pin: Pin) -> None:
         """Check if the pin supports the function and if it can be used as input/output"""
-        # Pin assignment can be changed to any pin with GPIO matrix so ignore checks here
+        # Pin assignment can be reassigned to any pin with GPIO matrix so ignore checks here
         try:
             super().check_pin_function(instance, function, pin)
         except ValueError:
@@ -254,11 +257,12 @@ class UART(BasePeripheral):
     ) -> None:
         super().__init__(count, assigned_pins, universal_pins, common_prefix=r'U\d.')
         self.optional_pins = self.unwrap_pins(['U{count}CTS', 'U{count}RTS'])
+        self.reassignable = True
         # TODO print warning if 0 instance is used? probably on PIN side or make UART0 turned on by default?
 
     def check_pin_function(self, instance: str, function: str, pin: Pin) -> None:
         """Check if the pin supports the function and if it can be used as input/output"""
-        # Pin assignment can be changed to any pin with GPIO matrix so ignore checks here
+        # Pin assignment can be reassigned to any pin with GPIO matrix so ignore checks here
         try:
             super().check_pin_function(instance, function, pin)
         except ValueError:

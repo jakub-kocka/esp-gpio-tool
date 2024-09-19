@@ -150,7 +150,7 @@ class GUI:
         check_btn.bind('<Button-1>', on_button)
 
         pins_values: dict[str, ttk.Combobox] = {}
-        self.gpios: list[str] = []
+        self.target: ESP = ESP(chips_cmb.get())
 
         def mode_changed(event: tk.Event, peripheral: BasePeripheral, sub_peripheral: str) -> None:
             """Mode change event handler
@@ -202,17 +202,13 @@ class GUI:
             """Target selected from chips Combobox event handler
             - draws all the peripherals, sub-peripherals and pins with a Combobox to fill the GPIOs
             """
-            target = ESP(chips_cmb.get())
+            self.target = ESP(chips_cmb.get())
             if variant:
                 if variants_cmb.get() != '-':
-                    target.set_soc(variants_cmb.get())
+                    self.target.set_soc(variants_cmb.get())
             else:
-                variants_cmb['values'] = ['-'] + target.soc_list
+                variants_cmb['values'] = ['-'] + self.target.soc_list
                 variants_cmb.set('Optional SoC variant')
-            self.gpios = []
-            for gpio_num, gpio in target.gpios.items():
-                self.gpios.append(f'GPIO{gpio_num} - {gpio.power_domain}')
-            self.gpios.insert(0, '-')  # add a char for not used GPIO
 
             # clearing GUI and dictionary for GPIOs
             if event:
@@ -226,7 +222,7 @@ class GUI:
             color_switch = 2
             colors = ['#DCDCDC', 'white']
 
-            for peripheral in target.peripherals:
+            for peripheral in self.target.peripherals:
                 if peripheral.name == 'BasePeripheral':
                     continue
 
@@ -327,8 +323,10 @@ class GUI:
                             pin_lbl.bind('<Button-4>', on_mousewheel_linux_down)
                             pin_lbl.bind('<Button-5>', on_mousewheel_linux_up)
 
+                        gpios = [str(pin) for pin in self.target.list_pins_by_function(pin)]
+                        gpios.insert(0, '-')  # add a char for not used GPIO
                         pins_values[pin] = ttk.Combobox(
-                            master=column_sub_periph_right_frm, state='readonly', values=self.gpios, justify='center'
+                            master=column_sub_periph_right_frm, state='readonly', values=gpios, justify='center'
                         )
                         pins_values[pin].current(0)
                         pins_values[pin].grid(row=pin_row, column=1, sticky='nsew')

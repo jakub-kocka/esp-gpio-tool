@@ -24,10 +24,7 @@ class Pin:
         return bool(self.assigned_function)
 
     def __str__(self) -> str:
-        return (
-            f'Pin({self.pin}, {self.functions}), power domain={self.power_domain}, '
-            f'assigned_function={self.assigned_function}'
-        )
+        return f'GPIO{self.pin} - {self.power_domain}'
 
     def __repr__(self) -> str:
         return str(self)
