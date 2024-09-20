@@ -40,7 +40,6 @@ peripheral:
     modes: [ Single SPI, Dual SPI, Quad SPI ]
     # Note: D -> MOSI, Q -> MISO, CLK -> CLK, CS0 -> CS
     assigned_pins: [ "{subname}HD", "{subname}WP", "{subname}CS0", "{subname}CLK", "{subname}Q", "{subname}D" ]
-    warning: {SPI: "SPI0 and SPI1 share the same SPI bus (same signals and IOs) and are used for connecting off-package flash and PSRAM"}
   SDMMC:
     count: 2
     data_width: {'1': [1, 4, 8], '2': [1, 4]}
