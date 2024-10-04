@@ -156,12 +156,12 @@ def test_SDIO_mode(mode: str) -> None:
         SDIO:
             0: {mode}
 
-    6:  SD0_CLK
-    7:  SD0_DATA0
-    8:  SD0_DATA1
-    9:  SD0_DATA2
-    10: SD0_DATA3
-    11: SD0_CMD
+    6:  SDIO0_CLK
+    7:  SDIO0_DATA0
+    8:  SDIO0_DATA1
+    9:  SDIO0_DATA2
+    10: SDIO0_DATA3
+    11: SDIO0_CMD
     """
     out = '\n'.join(run(config))
     assert 'Error' not in out
@@ -175,12 +175,12 @@ def test_SDIO_mode_missing_pins() -> None:
         SDIO:
             0: 4
 
-    6:  SD0_CLK
-    7:  SD0_DATA0
-    11: SD0_CMD
+    6:  SDIO0_CLK
+    7:  SDIO0_DATA0
+    11: SDIO0_CMD
     """
     out = '\n'.join(run(config))
-    for pin in ['SD0_DATA1', 'SD0_DATA2', 'SD0_DATA3']:
+    for pin in ['SDIO0_DATA1', 'SDIO0_DATA2', 'SDIO0_DATA3']:
         assert f'Error: Required function {pin} from peripheral SDIO is not assigned to any pin.' in out
 
 

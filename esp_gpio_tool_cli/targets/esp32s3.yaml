@@ -68,7 +68,7 @@ peripheral:
     count: 1
     # Part "OTG" is not specified by the datasheet, it is only for the later resolution by the checker
     assigned_pins: [ "USB_OTG_D-", "USB_OTG_D+", "USB_OTG_EXT_VP", "USB_OTG_EXT_VM", "USB_OTG_RCV", "USB_OTG_EXT_OEN", "USB_OTG_EXT_VPO", "USB_OTG_EXT_VMO"]
-  USBSERIALJTAG:  # USB Serial JTAG
+  USBSERIALJTAG:  # USB Serial/JTAG
     count: 1
     assigned_pins: [ "USB_D-", "USB_D+", "USB_EXT_VP", "USB_EXT_VM", "USB_EXT_OEN", "USB_EXT_VPO", "USB_EXT_VMO"]
   LCDCAM:   # LCD and Camera Controller (LCD_CAM)
