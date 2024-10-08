@@ -8,7 +8,7 @@ peripheral:
     assigned_pins: [ "DAC_{count}" ]
   UART:
     count: 3
-    assigned_pins: [ "U{count}TXD", "U{count}RXD", "U{count}CTS", "U{count}RTS" ]
+    assigned_pins: [ "U{count}TXD", "U{count}RXD", "U{count}CTS", "U{count}RTS", "U0DTR", "U0DSR" ]  # DTR and DSR are only available on UART0
   RTC:
     count: 17
     assigned_pins: [ "RTC_GPIO{count}" ]
@@ -43,6 +43,7 @@ peripheral:
   SDMMC:
     count: 2
     data_width: {'1': [1, 4, 8], '2': [1, 4]}
+    # Note: Pins were renamed from HS1_CLK to SDHOST_CCLK_1, etc. to keep consistency with other chips and use more descriptive names
     assigned_pins: [ "SDHOST_CCLK_{count}", "SDHOST_CCMD_{count}", "SDHOST_CDATA_{count}{{data_width}}" ]
     universal_pins: [ "SDHOST_CARD_DETECT_{count}", "SDHOST_CARD_WRITE_PRT_{count}", "SDHOST_CARD_INT_{count}" ]  # optional card detect, write protect and interrupt pins
   SDIO:

@@ -5,7 +5,7 @@ peripheral:
     assigned_pins: [ "ADC{count}_CH{{channel}}" ]
   UART:
     count: 3
-    assigned_pins: [ "U{count}TXD", "U{count}RXD", "U{count}CTS", "U{count}RTS" ]
+    assigned_pins: [ "U{count}TXD", "U{count}RXD", "U{count}CTS", "U{count}RTS", "U{count}DTR", "U{count}DSR" ]
   RTC:
     count: 22
     assigned_pins: [ "RTC_GPIO{count}" ]
