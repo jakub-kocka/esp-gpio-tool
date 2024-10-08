@@ -39,8 +39,8 @@ class GUI:
     def __init__(self) -> None:
         def resource_path(relative_path: str) -> str:
             """Resource PATH extended with relative path as an argument"""
-            base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'resources'))
-            return os.path.join(base_path, relative_path)
+            base_path = os.path.abspath(os.path.dirname(__file__))
+            return os.path.join(base_path, 'resources', relative_path)
 
         gui = tk.Tk()
 
