@@ -74,7 +74,7 @@ peripheral:
     count: 1
     assigned_pins: [ XTAL_32K_P, XTAL_32K_N ]
 
-# Note: PUP (wpu in datasheet) - pull up resistor enabled; PDOWN (wpu) - pull down resistor enabled
+# Note: PUP (wpu in datasheet) - pull up resistor enabled; PDOWN (wpd) - pull down resistor enabled
 gpio:
   0:  { power_domain: VDD3P3_RTC, functions: [ ADC2_CH1, RTC_GPIO11, TOUCH1, EMAC_TX_CLK, CLK_OUT1 ], strapping: "High for SPI Boot; Low for Download Mode", at_reset: PUP }
   1:  { power_domain: VDD3P3_CPU, functions: [ U0TXD, EMAC_RXD2, CLK_OUT3 ], at_reset: PUP }

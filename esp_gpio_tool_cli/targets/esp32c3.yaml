@@ -67,5 +67,5 @@ soc:
   ESP32-C3FN4: {reserved_pins: [12, 13, 14, 15, 16, 17]}  # flash 4MB
   ESP32-C3FH4: {reserved_pins: [12, 13, 14, 15, 16, 17]}  # flash 4MB
   ESP32-C3FH4AZ: {reserved_pins: [12, 13, 14, 15, 16, 17]}  # flash 4MB
-  ESP32-C3FH4AX: {not_connected: [12, 13, 14, 15, 16, 17]}  # 16-pin package, flash 4MB
+  ESP32-C3FH4X: {not_connected: [12, 13, 14, 15, 16, 17]}  # 16-pin package, flash 4MB
   ESP8685: {not_connected: [11, 12, 13, 14, 15, 16, 17]}  # 15-pin package, flash 4MB
