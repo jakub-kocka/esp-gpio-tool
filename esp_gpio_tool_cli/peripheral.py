@@ -267,7 +267,6 @@ class UART(BasePeripheral):
         super().__init__(count, assigned_pins, universal_pins, common_prefix=r'U\d.')
         self.optional_pins = self.unwrap_pins(['U{count}CTS', 'U{count}RTS', 'U{count}DTR', 'U{count}DSR'])
         self.reassignable = True
-        # TODO print warning if 0 instance is used? probably on PIN side or make UART0 turned on by default?
 
     def check_pin_function(self, instance: str, function: str, pin: Pin) -> None:
         """Check if the pin supports the function and if it can be used as input/output"""
