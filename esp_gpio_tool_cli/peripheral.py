@@ -344,7 +344,16 @@ class SDMMC(BasePeripheral):
         self._universal_pins = self._unwrap_data_pins(self._universal_pins)
         if self._assigned_pins:
             self._assigned_pins = self._unwrap_data_pins(self._assigned_pins)
-        self.optional_pins = self.universal_pins
+        self.optional_pins = self.unwrap_pins(
+            [
+                'SDHOST_RST_{count}',
+                'SDHOST_CARD_WRITE_PRT_{count}',
+                'SDHOST_CARD_DETECT_{count}',
+                'SDHOST_DATA_STROBE_{count}',
+                'SDHOST_CARD_INT_{count}',
+                'SDHOST_CCMD_OD_PULLUP_EN_{count}',
+            ]
+        )
 
     @property
     def universal_pins(self) -> dict[str, list[str]]:
@@ -383,6 +392,11 @@ class SDMMC(BasePeripheral):
     def set_mode(self, instance: str, mode: str) -> None:
         super().set_mode(instance, mode)
         self.mode[instance] = int(mode)
+
+    def check_pin_function(self, instance: str, function: str, pin: Pin) -> None:
+        if re.match(r'SDHOST_(CDATA|CCMD)_\d+', function) is not None:
+            logger.note(f'Function {function} requires 10k pull-up resistor on pin GPIO{pin.pin}.')
+        return super().check_pin_function(instance, function, pin)
 
 
 class RMT(BasePeripheral):

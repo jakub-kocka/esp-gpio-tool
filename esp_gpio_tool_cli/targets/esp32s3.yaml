@@ -40,7 +40,7 @@ peripheral:
   SDMMC:
     count: 2  # one controller -> two slots
     data_width: {'1': [1, 4, 8], '2': [1, 4, 8]}
-    universal_pins: [ "SDHOST_CCLK_{count}", "SDHOST_RST_{count}", "SDHOST_CCMD_OD_PULLUP_EN_{count}", "SDHOST_SDIO_TOHOST_INT", "SDHOST_CCMD_{count}", "SDHOST_DATA_STROBE_{count}", "SDHOST_CARD_DETECT_{count}", "SDHOST_CARD_WRITE_PRT_{count}", "SDHOST_CARD_INT_{count}", "SDHOST_CDATA_{count}{{data_width}}" ]
+    universal_pins: [ "SDHOST_CCLK_{count}", "SDHOST_CCMD_{count}", "SDHOST_CDATA_{count}{{data_width}}", "SDHOST_RST_{count}", "SDHOST_CCMD_OD_PULLUP_EN_{count}", "SDHOST_DATA_STROBE_{count}", "SDHOST_CARD_DETECT_{count}", "SDHOST_CARD_WRITE_PRT_{count}", "SDHOST_CARD_INT_{count}" ]
   CLKOUT:
     count: 3
     assigned_pins: [ "CLK_OUT{count}" ]

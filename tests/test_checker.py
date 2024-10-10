@@ -218,3 +218,36 @@ def test_flash_pin_reuse() -> None:
         'Warning: Pin 6 has been used multiple times, reusing pins is not recommended. '
         'Assigned functions: Flash/PSRAM, U1CTS' in out
     )
+
+
+def test_sdmmc() -> None:
+    config = """
+    chip: esp32s3
+    peripheral:
+        SDMMC:
+            1: 4
+    0: SDHOST_CCLK_1
+    1: SDHOST_CCMD_1
+    2: SDHOST_CDATA_10
+    3: SDHOST_CDATA_11
+    4: SDHOST_CDATA_12
+    5: SDHOST_CDATA_13
+    """
+    out = run(config)
+    assert 'Error' not in ''.join(out)
+    for idx, pin in enumerate(['CCMD_1', 'CDATA_10', 'CDATA_11', 'CDATA_12', 'CDATA_13']):
+        assert f'Note: Function SDHOST_{pin} requires 10k pull-up resistor on pin GPIO{idx+1}.' in out
+
+
+def test_reuse_debug_pins() -> None:
+    config = """
+    chip: esp32s3
+    19: OUTPUT  # USB_D+
+    39: OUTPUT  # MTCK (JTAG)
+    43: OUTPUT  # U0TXD (Serial)
+    """
+    out = '\n'.join(run(config))
+    assert 'Error' not in out
+    assert 'Warning: Pin 19 is reserved for JTAG debugging or USB.' in out
+    assert 'Warning: Pin 39 is reserved for JTAG debugging or USB.' in out
+    assert 'Warning: Pin 43 is reserved for serial debug/programming.' in out
