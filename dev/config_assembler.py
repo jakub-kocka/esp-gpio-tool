@@ -19,6 +19,8 @@ def _functions_builder(file: pd.DataFrame) -> list[list[str]]:
         'Digital Function2',
         'Digital Function3',
         'Digital Function4',
+        'LP GPIO Function0',
+        'LP GPIO Function1',
     ]
     for i, val in enumerate(file['Digital Function1']):
         pin_fncs = []

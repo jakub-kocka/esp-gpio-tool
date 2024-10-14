@@ -8,7 +8,7 @@ peripheral:
     assigned_pins: [ "DAC_{count}" ]
   UART:
     count: 2
-    assigned_pins: [ "U{count}TXD", "U{count}RXD", "U{count}CTS", "U{count}RTS" ]
+    assigned_pins: [ "U{count}TXD", "U{count}RXD", "U{count}CTS", "U{count}RTS", "U{count}DTR", "U{count}DSR" ]
   RTC:
     count: 22
     assigned_pins: [ "RTC_GPIO{count}" ]

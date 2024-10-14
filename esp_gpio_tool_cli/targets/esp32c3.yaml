@@ -6,7 +6,7 @@ peripheral:
   UART:
     count: 2
     assigned_pins: [ U0TXD, U0RXD ]
-    universal_pins: [ U1TXD, U1RXD, "U{count}CTS", "U{count}RTS" ]
+    universal_pins: [ U1TXD, U1RXD, "U{count}CTS", "U{count}RTS", "U{count}DTR", "U{count}DSR" ]
   JTAG:
     count: 1
     assigned_pins: [ MTCK, MTDO, MTMS, MTDI ]
@@ -19,7 +19,7 @@ peripheral:
   SPI:
     # SPI0 uses the same pins as SPI1 so actual count is 2
     count: 2
-    modes: [ Single SPI, Dual SPI, Quad SPI ]
+    modes: [ Single SPI, Dual SPI, Quad SPI, QPI ]
     subname: [ SPI, FSPI ]
     assigned_pins: [ "{subname}CS0", "{subname}CLK", "{subname}Q", "{subname}D", "{subname}HD", "{subname}WP" ]
   RMT:
@@ -28,7 +28,7 @@ peripheral:
   LEDC:
     count: 6
     universal_pins: [ "LEDC_SIG_OUT{count}"]
-  USBSERIALJTAG:  # USB Serial JTAG
+  USBSERIALJTAG:  # USB Serial/JTAG
     count: 1
     assigned_pins: [ "USB_D-", "USB_D+" ]
   TWAI:

@@ -231,6 +231,15 @@ class I2C(BasePeripheral):
         super().__init__(count, assigned_pins, universal_pins)
 
 
+class LPI2C(BasePeripheral):
+    """Low Power I2C peripheral"""
+
+    def __init__(
+        self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
+    ) -> None:
+        super().__init__(count, assigned_pins, universal_pins, common_prefix='LP_I2C')
+
+
 class I2S(BasePeripheral):
     def __init__(
         self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
@@ -256,7 +265,7 @@ class UART(BasePeripheral):
         self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
     ) -> None:
         super().__init__(count, assigned_pins, universal_pins, common_prefix=r'U\d.')
-        self.optional_pins = self.unwrap_pins(['U{count}CTS', 'U{count}RTS'])
+        self.optional_pins = self.unwrap_pins(['U{count}CTS', 'U{count}RTS', 'U{count}DTR', 'U{count}DSR'])
         self.reassignable = True
         # TODO print warning if 0 instance is used? probably on PIN side or make UART0 turned on by default?
 
@@ -272,11 +281,23 @@ class UART(BasePeripheral):
             )
 
 
+class LPUART(BasePeripheral):
+    """Low power UART peripheral"""
+
+    def __init__(
+        self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
+    ) -> None:
+        super().__init__(count, assigned_pins, universal_pins, common_prefix='LP_UART')
+        self.optional_pins = self.unwrap_pins(
+            list(set(assigned_pins) - set(['LP_UART_RXD', 'LP_UART_TXD']))  # type: ignore
+        )
+
+
 class SDIO(BasePeripheral):
     def __init__(
         self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
     ) -> None:
-        super().__init__(count, assigned_pins, universal_pins, common_prefix='SD', **kwargs)
+        super().__init__(count, assigned_pins, universal_pins, common_prefix='SDIO', **kwargs)
         self.supported_modes = kwargs.get('data_width', {str(i): [1] for i in self.instances})
         self.mode = {str(i): 1 for i in self.instances}
         self.mode_label = 'Data width'
@@ -288,7 +309,7 @@ class SDIO(BasePeripheral):
         pins = {}
         for instance in self.instances:
             width: int = int(self.mode.get(instance, 0)) - 1
-            regex = re.compile(rf'[A-Z]{{2}}\d_(CLK|CMD|DATA[0-{width}])')
+            regex = re.compile(rf'SDIO\d_(CLK|CMD|DATA[0-{width}])')
             pins[instance] = [pin for pin in self._assigned_pins[instance] if regex.match(pin)]
         return pins
 
@@ -603,3 +624,46 @@ class LCDCAM(BasePeripheral):
             elif '16 bit' in str(self.mode[instance]):
                 pins[instance] = self._universal_pins[instance]
         return pins
+
+
+class PARLIO(BasePeripheral):
+    """Parallel IO peripheral"""
+
+    def __init__(
+        self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
+    ) -> None:
+        super().__init__(count, assigned_pins, universal_pins, common_prefix='PARL', **kwargs)
+        self.supported_modes = {'0': kwargs.get('data_width', [1])}
+        self.mode = {str(i): 1 for i in self.instances}
+        self.mode_label = 'Data width'
+        self._universal_pins = self._unwrap_data_pins()
+
+    @property
+    def universal_pins(self) -> dict[str, list[str]]:
+        """Dynamic getter for universal pins, based on data width of the peripheral instance"""
+        pins = {}
+        for instance in self.instances:
+            width: int = int(self.mode.get(instance, 0)) - 1
+            if width > 10:  # change regex for double digit data channels
+                regex = re.compile(rf'PARL_(RX|TX)_(CLK.*|DATA([0-9]|1[0-{width-10}]))$')
+            else:
+                regex = re.compile(rf'PARL_(RX|TX)_(CLK.*|DATA[0-{width}])$')
+            pins[instance] = [pin for pin in self._universal_pins[instance] if regex.match(pin)]
+        return pins
+
+    def _unwrap_data_pins(self) -> dict[str, list[str]]:
+        universal_pins: dict[str, list[str]] = {}
+        for instance in self.instances:
+            width = int(max(self.supported_modes.get(instance, [1])))
+            universal_pins[instance] = []
+            for pin in self._universal_pins[instance]:
+                if '{data_width}' not in pin:
+                    universal_pins[instance].append(pin)
+                    continue
+                # replace wildcard with all possible channels
+                universal_pins[instance].extend([pin.format(data_width=str(i)) for i in range(width)])
+        return universal_pins
+
+    def set_mode(self, instance: str, mode: str) -> None:
+        super().set_mode(instance, mode)
+        self.mode[instance] = int(mode)
