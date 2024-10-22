@@ -4,6 +4,8 @@ import click
 
 from esp_gpio_tool_cli import __version__
 from esp_gpio_tool_cli.checker import run_check
+from esp_gpio_tool_cli.chip import ESP
+from esp_gpio_tool_cli.chip import SUPPORTED_CHIPS
 from esp_gpio_tool_cli.logger import Logger
 
 
@@ -26,6 +28,26 @@ def check(filename: str) -> None:
         print(line)
     if 'All checks passed.' not in output:
         raise SystemExit(1)
+
+
+@main.command(name='list-pins')
+@click.argument('chip', type=click.Choice(SUPPORTED_CHIPS), required=True)
+def list_pins(chip: str) -> None:
+    """Print the available pins for the given chip"""
+    esp = ESP(chip)
+    print(f'chip: {esp.name}')
+    print(f"SoCs: {', '.join([str(soc) for soc in esp.soc_list])}")
+    print('IO:\n  Pins: INPUT, OUTPUT')
+    for peripheral in esp.peripherals:
+        print(f'{peripheral.name}:')
+        if peripheral.supported_modes:
+            print('  Supported Modes:')
+            for mode, modes in peripheral.supported_modes.items():
+                print(f'    {mode}: {", ".join(str(m) for m in modes)}')
+        pins = []
+        for instance in peripheral.instances:
+            pins.extend(peripheral.all_pins[instance])
+        print(f"  Pins: {', '.join(pins)}")
 
 
 if __name__ == '__main__':

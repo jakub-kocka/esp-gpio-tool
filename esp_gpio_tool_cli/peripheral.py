@@ -553,6 +553,8 @@ class USBSERIALJTAG(BasePeripheral):
         self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
     ) -> None:
         super().__init__(count, assigned_pins, universal_pins, common_prefix=r'USB(?!_OTG).', **kwargs)
+        required_values = ['USB_D-', 'USB_D+']
+        self.optional_pins = {'0': [val for val in self.assigned_pins if val not in required_values]}
 
 
 class LCDCAM(BasePeripheral):
