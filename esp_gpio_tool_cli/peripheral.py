@@ -445,6 +445,7 @@ class PCNT(BasePeripheral):
     ) -> None:
         super().__init__(count, assigned_pins, universal_pins, **kwargs)
         self._universal_pins = self.unwrap_channels(kwargs.get('channels', None), self._universal_pins)
+        self._used_pins: list[str] = []
 
     def unwrap_channels(self, channels: int, pins: dict[str, list[str]]) -> dict[str, list[str]]:
         """Convert wildcard channels to actual channels"""
@@ -459,6 +460,29 @@ class PCNT(BasePeripheral):
                     output[instance].extend([pin.format(channel=str(i)) for i in range(channels)])
             return output
         return pins
+
+    def required_pins(self, instance: str) -> list[str]:
+        """Return all required pins for a peripheral instance"""
+        if instance not in self.instances:
+            raise ValueError(f'Instance {instance} not found.')
+
+        required_signals = set(self._used_pins)
+        for signal in self._used_pins:
+            # if SIG is used the corresponding CTRL signal is also required (same channel and instance) and vice versa
+            match = re.match(rf'(PCNT_(SIG|CTRL)_CH\d+_IN{instance})', signal)
+            if match:
+                base_signal = match.group(1)
+                if 'SIG' in base_signal:
+                    pair_signal = base_signal.replace('SIG', 'CTRL')
+                else:
+                    pair_signal = base_signal.replace('CTRL', 'SIG')
+                required_signals.add(pair_signal)
+
+        return list(required_signals)
+
+    def use(self, function: str, pin: Pin) -> None:
+        self._used_pins.append(function)
+        return super().use(function, pin)
 
 
 class JTAG(BasePeripheral):
