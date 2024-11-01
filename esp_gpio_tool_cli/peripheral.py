@@ -267,7 +267,6 @@ class UART(BasePeripheral):
         super().__init__(count, assigned_pins, universal_pins, common_prefix=r'U\d.')
         self.optional_pins = self.unwrap_pins(['U{count}CTS', 'U{count}RTS', 'U{count}DTR', 'U{count}DSR'])
         self.reassignable = True
-        # TODO print warning if 0 instance is used? probably on PIN side or make UART0 turned on by default?
 
     def check_pin_function(self, instance: str, function: str, pin: Pin) -> None:
         """Check if the pin supports the function and if it can be used as input/output"""
@@ -344,7 +343,16 @@ class SDMMC(BasePeripheral):
         self._universal_pins = self._unwrap_data_pins(self._universal_pins)
         if self._assigned_pins:
             self._assigned_pins = self._unwrap_data_pins(self._assigned_pins)
-        self.optional_pins = self.universal_pins
+        self.optional_pins = self.unwrap_pins(
+            [
+                'SDHOST_RST_{count}',
+                'SDHOST_CARD_WRITE_PRT_{count}',
+                'SDHOST_CARD_DETECT_{count}',
+                'SDHOST_DATA_STROBE_{count}',
+                'SDHOST_CARD_INT_{count}',
+                'SDHOST_CCMD_OD_PULLUP_EN_{count}',
+            ]
+        )
 
     @property
     def universal_pins(self) -> dict[str, list[str]]:
@@ -383,6 +391,11 @@ class SDMMC(BasePeripheral):
     def set_mode(self, instance: str, mode: str) -> None:
         super().set_mode(instance, mode)
         self.mode[instance] = int(mode)
+
+    def check_pin_function(self, instance: str, function: str, pin: Pin) -> None:
+        if re.match(r'SDHOST_(CDATA|CCMD)_\d+', function) is not None:
+            logger.note(f'Function {function} requires 10k pull-up resistor on pin GPIO{pin.pin}.')
+        return super().check_pin_function(instance, function, pin)
 
 
 class RMT(BasePeripheral):
@@ -432,6 +445,7 @@ class PCNT(BasePeripheral):
     ) -> None:
         super().__init__(count, assigned_pins, universal_pins, **kwargs)
         self._universal_pins = self.unwrap_channels(kwargs.get('channels', None), self._universal_pins)
+        self._used_pins: list[str] = []
 
     def unwrap_channels(self, channels: int, pins: dict[str, list[str]]) -> dict[str, list[str]]:
         """Convert wildcard channels to actual channels"""
@@ -446,6 +460,29 @@ class PCNT(BasePeripheral):
                     output[instance].extend([pin.format(channel=str(i)) for i in range(channels)])
             return output
         return pins
+
+    def required_pins(self, instance: str) -> list[str]:
+        """Return all required pins for a peripheral instance"""
+        if instance not in self.instances:
+            raise ValueError(f'Instance {instance} not found.')
+
+        required_signals = set(self._used_pins)
+        for signal in self._used_pins:
+            # if SIG is used the corresponding CTRL signal is also required (same channel and instance) and vice versa
+            match = re.match(rf'(PCNT_(SIG|CTRL)_CH\d+_IN{instance})', signal)
+            if match:
+                base_signal = match.group(1)
+                if 'SIG' in base_signal:
+                    pair_signal = base_signal.replace('SIG', 'CTRL')
+                else:
+                    pair_signal = base_signal.replace('CTRL', 'SIG')
+                required_signals.add(pair_signal)
+
+        return list(required_signals)
+
+    def use(self, function: str, pin: Pin) -> None:
+        self._used_pins.append(function)
+        return super().use(function, pin)
 
 
 class JTAG(BasePeripheral):

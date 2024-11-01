@@ -7,6 +7,9 @@ from esp_gpio_tool_cli.logger import Logger
 
 logger = Logger()
 
+DEBUG_FUCTIONS = ['MTCK', 'MTDO', 'MTMS', 'MTDI', 'USB_D-', 'USB_D+']
+SERIAL_FUCTIONS = ['U0TXD', 'U0RXD']
+
 
 @dataclass
 class Pin:
@@ -50,5 +53,20 @@ class Pin:
                 logger.note(f'Pin {self.pin} has an internal pull-up resistor enabled at reset.')
             elif self.at_reset == 'PDOWN':
                 logger.note(f'Pin {self.pin} has an internal pull-down resistor enabled at reset.')
+
+            # Check for debug functions
+            debug_function = [f for f in self.functions if f in DEBUG_FUCTIONS]
+            if function not in DEBUG_FUCTIONS and debug_function:
+                logger.warn(
+                    f'Pin {self.pin} is reserved for JTAG debugging or USB. Please use with caution! '
+                    f'Debug function: {debug_function[0]}'
+                )
+            # Check for serial functions
+            serial_function = [f for f in self.functions if f in SERIAL_FUCTIONS]
+            if function not in SERIAL_FUCTIONS and serial_function:
+                logger.warn(
+                    f'Pin {self.pin} is reserved for serial debug/programming. Please use with caution! '
+                    f'Serial function: {serial_function[0]}'
+                )
 
         self.assigned_function.append(function)
