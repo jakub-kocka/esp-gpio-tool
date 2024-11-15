@@ -30,8 +30,9 @@ peripheral:
     count: 4
     universal_pins: [ "RMT_SIG_IN{count}", "RMT_SIG_OUT{count}" ]
   MCPWM:  # Motor Control PWM
-    count: 3
-    universal_pins: [ "SYNC{count}", "FAULT{count}", "CAP{count}", "PWM{count}A", "PWM{count}B" ]
+    count: 1
+    channels: 3
+    universal_pins: [ "MCPWM{count}_SYNC_IN{{channel}}", "MCPWM{count}_FLT_IN{{channel}}", "MCPWM{count}_CAP_IN{{channel}}", "MCPWM{count}_OUT{{channel}}A", "MCPWM{count}_OUT{{channel}}B" ]
   LEDC:  # LED PWM
     count: 6
     universal_pins: [ "LEDC_SIG_OUT{count}" ]
