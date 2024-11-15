@@ -5,6 +5,8 @@
 # This script is meant to generate "gpio" part of the target configuration file from excel "pin-table-helper" file.
 #
 # Usage: run this script with the "assemble" argument and provide path to the excel file
+import re
+
 import click
 import pandas as pd
 
@@ -12,17 +14,17 @@ import pandas as pd
 def _functions_builder(file: pd.DataFrame) -> list[list[str]]:
     functions = []
     fnc_names = [
-        'Analog  Function0',
-        'Analog  Function1',
+        'AnalogFunction0',
+        'AnalogFunction1',
         'RTC_GPIO',
-        'Digital Function0',
-        'Digital Function2',
-        'Digital Function3',
-        'Digital Function4',
-        'LP GPIO Function0',
-        'LP GPIO Function1',
+        'DigitalFunction0',
+        'DigitalFunction2',
+        'DigitalFunction3',
+        'DigitalFunction4',
+        'LPGPIOFunction0',
+        'LPGPIOFunction1',
     ]
-    for i, val in enumerate(file['Digital Function1']):
+    for i, val in enumerate(file['DigitalFunction1']):
         pin_fncs = []
         for fnc in fnc_names:
             if file.get(fnc) is None:
@@ -82,12 +84,14 @@ def main() -> None:
 def assemble(filepath: str) -> None:
     """Main function performing the assembly of the gpio section for the config file"""
     excel_file: pd.DataFrame = pd.read_excel(filepath, sheet_name='raw-data')
+    # Remove spaces from the column names to eliminate diffeerences between the versions of the excel file
+    excel_file = excel_file.rename(columns=lambda x: re.sub(' +', '', x))
 
-    gpios = excel_file['Digital Function1']
+    gpios = excel_file['DigitalFunction1']
     power_domain = excel_file['Power']
     functions = _functions_builder(excel_file)
     strapping = excel_file['Strapping']
-    at_reset = excel_file['At Reset']
+    at_reset = excel_file['AtReset']
 
     _yaml_builder(gpios, power_domain, functions, strapping, at_reset)
 
