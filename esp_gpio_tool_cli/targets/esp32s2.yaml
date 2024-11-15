@@ -28,13 +28,17 @@ peripheral:
   SPI:
     # SPI0 uses the same pins as SPI1 so actual count is 3
     count: 3 # SPI0, SPI1, SPI2, SPI3
-    subname: [ SPI, SPI2, SPI3 ]
+    subname: [ SPI, FSPI, SPI3 ]
     modes: {'SPI': [Single SPI, Dual SPI, Quad SPI, Octal SPI, QPI, OPI],
-            'SPI2': [Single SPI, Dual SPI, Quad SPI, Octal SPI, QPI, OPI],
-            'SPI3': [Single SPI, Dual SPI, Quad SPI, QPI]
+            'FSPI': [Single SPI, Dual SPI, Quad SPI, Octal SPI, QPI, OPI],
+            'SPI3': [Single SPI]
           }
     # Note: D -> MOSI, Q -> MISO, CLK -> CLK, CS0 -> CS
-    assigned_pins: [ "{subname}HD", "{subname}WP", "{subname}CS0", "{subname}CS1", "{subname}CLK", "{subname}Q", "{subname}D", "{subname}IO4", "{subname}IO5", "{subname}IO6", "{subname}IO7", "{subname}DQS"]
+    # SPI has 2 CS pins, FSPI has 6 CS pins, SPI3 has 3 CS pins
+    # SPI3HD and SPI3DQS are mentioned in the datasheet, but SPI3 does not support quad mode where these could be used (also SPI3WP is not mentioned), so they are not included in the following list
+    # SPICD and FSPICD are mentioned in the datasheet, but they are not included in the following list because they are not used in any other chip
+    assigned_pins: [ "SPICLK", "SPIQ", "SPID", "SPIHD", "SPIWP", "SPIIO4", "SPIIO5", "SPIIO6", "SPIIO7", "SPIDQS", "SPICS0", "SPICS1", "FSPICLK", "FSPIQ", "FSPID", "FSPIHD", "FSPIWP", "FSPIIO4", "FSPIIO5", "FSPIIO6", "FSPIIO7", "FSPIDQS", "FSPICS0" ]
+    universal_pins: [ "FSPICS1", "FSPICS2", "FSPICS3", "FSPICS4", "FSPICS5", "SPI3CLK", "SPI3Q", "SPI3D", "SPI3CS0", "SPI3CS1", "SPI3CS2" ]
   CLKOUT:
     count: 3
     assigned_pins: [ "CLK_OUT{count}" ]

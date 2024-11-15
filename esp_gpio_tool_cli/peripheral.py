@@ -56,10 +56,12 @@ class BasePeripheral:
 
     @property
     def assigned_pins(self) -> dict[str, list[str]]:
+        """IO MUX signals/functions that are assigned to specific pins"""
         return self._assigned_pins
 
     @property
     def universal_pins(self) -> dict[str, list[str]]:
+        """GPIO matrix signals/functions that can be reassigned to any pin"""
         return self._universal_pins
 
     @property
@@ -194,23 +196,62 @@ class SPI(BasePeripheral):
             self.supported_modes = modes
         self.mode = {i: 'Single SPI' for i in self.instances}
         self.reassignable = True
+        opt_filter = re.compile(r'.?SPI(CS\d|DQS)').match
+        self.optional_pins = {
+            key: list(filter(opt_filter, pins + self._universal_pins[key])) for key, pins in self._assigned_pins.items()
+        }
 
     @property
     def assigned_pins(self) -> dict[str, list[str]]:
-        pins = {}
+        return self._filter_pins(self._assigned_pins)
+
+    @property
+    def universal_pins(self) -> dict[str, list[str]]:
+        return self._filter_pins(self._universal_pins)
+
+    def _filter_pins(self, pins: dict[str, list[str]]) -> dict[str, list[str]]:
+        """Filter pins based on the selected mode"""
+        out = {}
         for instance in self.instances:
             if self.mode[instance] in ['Single SPI', 'Dual SPI']:
-                regex = re.compile(r'.?SPI\d?(CS\d?|CLK|Q|D)')
-                pins[instance] = [p for p in self._assigned_pins[instance] if regex.match(p)]
+                regex = re.compile(r'.?SPI\d?(CS\d?|CLK|Q|D)$')
+                out[instance] = [p for p in pins[instance] if regex.match(p)]
             elif self.mode[instance] in ['Quad SPI', 'QPI']:
-                pins[instance] = list(
-                    filter(
-                        lambda x: not (x.endswith(('DQS', 'IO4', 'IO5', 'IO6', 'IO7'))), self._assigned_pins[instance]
-                    )
+                out[instance] = list(
+                    filter(lambda x: not (x.endswith(('DQS', 'IO4', 'IO5', 'IO6', 'IO7'))), pins[instance])
                 )
             elif self.mode[instance] in ['Octal SPI', 'OPI']:
-                pins[instance] = self._assigned_pins[instance]
-        return pins
+                out[instance] = pins[instance]  # no filtering needed
+        return out
+
+    def unwrap_pins(self, pins: list[str] | None) -> dict[str, list[str]]:
+        """Convert wildcard pins to actual pins, e.g. {subname}D -> {SPI: [SPID], FSPI: [FSPID]]"""
+        output: dict[str, list[str]] = {}
+        if pins is not None:
+            # prepare output dict with empty lists per peripheral instance
+            output = {i: [] for i in self.instances}
+            for pin in pins:
+                if f'{{{self._replace_keyword}}}' in pin:
+                    for i in self.instances:
+                        # replace wildcard with counter of peripheral instance
+                        output[i].append(pin.format(**{self._replace_keyword: str(i)}))
+                else:
+                    for instance in self.instances:
+                        # for SPI instance match SPID but not SPI3D
+                        if re.match(rf'{instance}(?!\d).*', pin):
+                            output[str(instance)].append(pin)
+        return output
+
+    def use(self, function: str, pin: Pin) -> None:
+        """Check SPI specific limitations; first SPI instance is usually reserved for flash memory and PSRAM"""
+        is_esp32 = 'HSPI' in self.instances  # hack: easiest way to check if this class belongs to ESP32 chip
+        if re.match(r'SPI(?!\d).*', function) and not self.used['SPI'] and not is_esp32:
+            # not true for ESP32, so we skip this warning
+            logger.warn(
+                'SPI is reserved for flash memory or PSRAM and cannot be used for general purposes. '
+                f'Please use {", ".join(self.instances[1:])} instead.'
+            )
+        super().use(function, pin)
 
     def check_pin_function(self, instance: str, function: str, pin: Pin) -> None:
         """Check if the pin supports the function and if it can be used as input/output"""
