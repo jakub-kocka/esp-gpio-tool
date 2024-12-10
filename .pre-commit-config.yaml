@@ -56,12 +56,8 @@ repos:
       - id: check-copyright
         args: ['--config', 'check_copyright_config.yaml']
 
-  # Local hooks
-  - repo: local
+  - repo: https://github.com/lyz-code/yamlfix/
+    rev: 1.17.0
     hooks:
-      - id: pip-compile                                  # Generate locked requirements.txt for production
-        name: compile requirements.txt
-        entry: bash -c 'python -m piptools compile --output-file=requirements.txt pyproject.toml > /dev/null'
-        language: system
-        pass_filenames: false
-        files: requirements.txt|pyproject.toml
+      - id: yamlfix
+        files: esp_gpio_tool_cli/targets/*.yaml

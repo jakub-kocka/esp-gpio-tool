@@ -131,3 +131,10 @@ find = {exclude = ["test", "test.*"]}
 
 [tool.coverage.run]
     omit = ["__*__.py", "*/tests/*", "esp_gpio_tool/*"]
+
+[tool.yamlfix]
+    line_length = 200
+    whitelines = 1
+    section_whitelines = 1
+    sequence_style = "keep_style"
+    explicit_start = false
