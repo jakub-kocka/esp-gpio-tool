@@ -706,3 +706,13 @@ class PARLIO(BasePeripheral):
     def set_mode(self, instance: str, mode: str) -> None:
         super().set_mode(instance, mode)
         self.mode[instance] = int(mode)
+
+
+class ZCD(BasePeripheral):
+    """PAD voltage comparator (Zero Crossing Detector)"""
+
+    def __init__(
+        self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
+    ) -> None:
+        super().__init__(count, assigned_pins, universal_pins, common_prefix='ZCD', **kwargs)
+        self.optional_pins = {'0': ['ZCD0']}  # ZCD0 is optional reference (internal one can be used to replace)
