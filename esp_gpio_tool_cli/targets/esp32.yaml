@@ -39,7 +39,8 @@ peripheral:
     subname: [ SPI, HSPI, VSPI ]
     modes: [ Single SPI, Dual SPI, Quad SPI ]
     # Note: D -> MOSI, Q -> MISO, CLK -> CLK, CS0 -> CS
-    assigned_pins: [ "{subname}HD", "{subname}WP", "{subname}CS0", "{subname}CLK", "{subname}Q", "{subname}D" ]
+    assigned_pins: [ "{subname}CLK", "{subname}Q", "{subname}D", "{subname}HD", "{subname}WP", "{subname}CS0" ]
+    universal_pins: [ "{subname}CS1", "{subname}CS2" ]
   SDMMC:
     count: 2
     data_width: {'1': [1, 4, 8], '2': [1, 4]}

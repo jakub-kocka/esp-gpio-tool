@@ -14,9 +14,11 @@ peripheral:
     universal_pins: [ "I2C{count}_SCL", "I2C{count}_SDA"]
   SPI:  # Actually, there are 3 SPI peripherals, but SPI0 and SPI1 are SoC internal and not usable by the user
     count: 1
-    modes: [ Single SPI, Dual SPI, Quad SPI ]
+    # SPI1 is not exposed from the package
     subname: [ FSPI ]
-    assigned_pins: [ "{subname}CS0", "{subname}CLK", "{subname}Q", "{subname}D", "{subname}HD", "{subname}WP" ]
+    modes: [ Single SPI, Dual SPI, Quad SPI ]
+    assigned_pins: [ "{subname}CLK", "{subname}Q", "{subname}D", "{subname}HD", "{subname}WP", "{subname}CS0" ]
+    universal_pins: [ "FSPICS1", "FSPICS2", "FSPICS3", "FSPICS4", "FSPICS5" ]
   LEDC: # signal name from datasheet (pg. 24): ledc_ls_sig_out{count}
     count: 6
     universal_pins: [ "LEDC_SIG_OUT{count}"]
