@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+# SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
 # SPDX-License-Identifier: Apache-2.0
 import re
 from typing import Any
@@ -198,7 +198,8 @@ class SPI(BasePeripheral):
         self.reassignable = True
         opt_filter = re.compile(r'.?SPI(CS\d|DQS)').match
         self.optional_pins = {
-            key: list(filter(opt_filter, pins + self._universal_pins[key])) for key, pins in self._assigned_pins.items()
+            key: list(filter(opt_filter, pins + self._universal_pins.get(key, [])))
+            for key, pins in self._assigned_pins.items()
         }
 
     @property
@@ -212,16 +213,17 @@ class SPI(BasePeripheral):
     def _filter_pins(self, pins: dict[str, list[str]]) -> dict[str, list[str]]:
         """Filter pins based on the selected mode"""
         out = {}
-        for instance in self.instances:
-            if self.mode[instance] in ['Single SPI', 'Dual SPI']:
-                regex = re.compile(r'.?SPI\d?(CS\d?|CLK|Q|D)$')
-                out[instance] = [p for p in pins[instance] if regex.match(p)]
-            elif self.mode[instance] in ['Quad SPI', 'QPI']:
-                out[instance] = list(
-                    filter(lambda x: not (x.endswith(('DQS', 'IO4', 'IO5', 'IO6', 'IO7'))), pins[instance])
-                )
-            elif self.mode[instance] in ['Octal SPI', 'OPI']:
-                out[instance] = pins[instance]  # no filtering needed
+        if pins:
+            for instance in self.instances:
+                if self.mode[instance] in ['Single SPI', 'Dual SPI']:
+                    regex = re.compile(r'.?SPI\d?(CS\d?|CLK|Q|D)$')
+                    out[instance] = [p for p in pins[instance] if regex.match(p)]
+                elif self.mode[instance] in ['Quad SPI', 'QPI']:
+                    out[instance] = list(
+                        filter(lambda x: not (x.endswith(('DQS', 'IO4', 'IO5', 'IO6', 'IO7'))), pins[instance])
+                    )
+                elif self.mode[instance] in ['Octal SPI', 'OPI']:
+                    out[instance] = pins[instance]  # no filtering needed
         return out
 
     def unwrap_pins(self, pins: list[str] | None) -> dict[str, list[str]]:
