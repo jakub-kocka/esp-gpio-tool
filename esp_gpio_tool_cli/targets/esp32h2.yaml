@@ -60,13 +60,13 @@ gpio:
   3:  { power_domain: VDDPST1,      functions: ['ADC1_CH2', 'MTDO', 'FSPIHD'] }  # strapping: SPI Download Boot mode - Low
   4:  { power_domain: VDDPST1,      functions: ['ADC1_CH3', 'MTCK', 'FSPICLK'] }
   5:  { power_domain: VDDPST1,      functions: ['ADC1_CH4', 'MTDI', 'FSPID'] }
-  8:  { power_domain: VDDPST1,      functions: [], strapping: "Has to be pulled-up for Download Mode" }
-  9:  { power_domain: VDDPST1,      functions: [], strapping: "High for SPI Boot; Low for Download Mode", at_reset: PUP }
-  10: { power_domain: VDDPST1,      functions: ['ZCD0'] }
-  11: { power_domain: VDDPST1,      functions: ['ZCD1'] }
-  12: { power_domain: VDDPST1/VBAT, functions: [] }
-  13: { power_domain: VDDPST1/VBAT, functions: ['XTAL_32K_P'] }
-  14: { power_domain: VDDPST1/VBAT, functions: ['XTAL_32K_N'] }
+  8:  { power_domain: VDDPST1,      rtc: true, functions: [], strapping: "Has to be pulled-up for Download Mode" }
+  9:  { power_domain: VDDPST1,      rtc: true, functions: [], strapping: "High for SPI Boot; Low for Download Mode", at_reset: PUP }
+  10: { power_domain: VDDPST1,      rtc: true, functions: ['ZCD0'] }
+  11: { power_domain: VDDPST1,      rtc: true, functions: ['ZCD1'] }
+  12: { power_domain: VDDPST1/VBAT, rtc: true, functions: [] }
+  13: { power_domain: VDDPST1/VBAT, rtc: true, functions: ['XTAL_32K_P'] }
+  14: { power_domain: VDDPST1/VBAT, rtc: true, functions: ['XTAL_32K_N'] }
   22: { power_domain: VDDPST2,      functions: [] }
   23: { power_domain: VDDPST2,      functions: ['U0RXD', 'FSPICS1'] }
   24: { power_domain: VDDPST2,      functions: ['U0TXD', 'FSPICS2'] }

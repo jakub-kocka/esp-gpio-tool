@@ -9,9 +9,6 @@ peripheral:
   UART:
     count: 2
     assigned_pins: [ "U{count}TXD", "U{count}RXD", "U{count}CTS", "U{count}RTS", "U{count}DTR", "U{count}DSR" ]
-  RTC:
-    count: 22
-    assigned_pins: [ "RTC_GPIO{count}" ]
   JTAG:
     count: 1
     assigned_pins: [ MTCK, MTDO, MTMS, MTDI ]
@@ -75,28 +72,28 @@ peripheral:
 # Note: PUP (wpu in datasheet) - pull up resistor enabled; PDOWN (wpd) - pull down resistor enabled
 
 gpio:
-        0:      { power_domain: VDD3P3_RTC_IO,  functions: ['RTC_GPIO0'], strapping: "High for SPI Boot; Low for Download Mode", at_reset: PUP }
-        1:      { power_domain: VDD3P3_RTC_IO,  functions: ['TOUCH1', 'ADC1_CH0', 'RTC_GPIO1'] }
-        2:      { power_domain: VDD3P3_RTC_IO,  functions: ['TOUCH2', 'ADC1_CH1', 'RTC_GPIO2'] }
-        3:      { power_domain: VDD3P3_RTC_IO,  functions: ['TOUCH3', 'ADC1_CH2', 'RTC_GPIO3'] }
-        4:      { power_domain: VDD3P3_RTC_IO,  functions: ['TOUCH4', 'ADC1_CH3', 'RTC_GPIO4'] }
-        5:      { power_domain: VDD3P3_RTC_IO,  functions: ['TOUCH5', 'ADC1_CH4', 'RTC_GPIO5'] }
-        6:      { power_domain: VDD3P3_RTC_IO,  functions: ['TOUCH6', 'ADC1_CH5', 'RTC_GPIO6'] }
-        7:      { power_domain: VDD3P3_RTC_IO,  functions: ['TOUCH7', 'ADC1_CH6', 'RTC_GPIO7'] }
-        8:      { power_domain: VDD3P3_RTC_IO,  functions: ['TOUCH8', 'ADC1_CH7', 'RTC_GPIO8'] }
-        9:      { power_domain: VDD3P3_RTC_IO,  functions: ['TOUCH9', 'ADC1_CH8', 'RTC_GPIO9', 'FSPIHD'] }
-        10:     { power_domain: VDD3P3_RTC_IO,  functions: ['TOUCH10', 'ADC1_CH9', 'RTC_GPIO10', 'FSPIIO4', 'FSPICS0'] }
-        11:     { power_domain: VDD3P3_RTC_IO,  functions: ['TOUCH11', 'ADC2_CH0', 'RTC_GPIO11', 'FSPIIO5', 'FSPID'] }
-        12:     { power_domain: VDD3P3_RTC_IO,  functions: ['TOUCH12', 'ADC2_CH1', 'RTC_GPIO12', 'FSPIIO6', 'FSPICLK'] }
-        13:     { power_domain: VDD3P3_RTC_IO,  functions: ['TOUCH13', 'ADC2_CH2', 'RTC_GPIO13', 'FSPIIO7', 'FSPIQ'] }
-        14:     { power_domain: VDD3P3_RTC_IO,  functions: ['TOUCH14', 'ADC2_CH3', 'RTC_GPIO14', 'FSPIDQS', 'FSPIWP'] }
-        15:     { power_domain: VDD3P3_RTC_IO,  functions: ['XTAL_32K_P', 'ADC2_CH4', 'RTC_GPIO15', 'U0RTS'] }
-        16:     { power_domain: VDD3P3_RTC_IO,  functions: ['XTAL_32K_N', 'ADC2_CH5', 'RTC_GPIO16', 'U0CTS'] }
-        17:     { power_domain: VDD3P3_RTC_IO,  functions: ['DAC_1', 'ADC2_CH6', 'RTC_GPIO17', 'U1TXD'] }
-        18:     { power_domain: VDD3P3_RTC_IO,  functions: ['DAC_2', 'ADC2_CH7', 'RTC_GPIO18', 'U1RXD', 'CLK_OUT3'] }
-        19:     { power_domain: VDD3P3_RTC_IO,  functions: ['USB_OTG_D-', 'ADC2_CH8', 'RTC_GPIO19', 'U1RTS', 'CLK_OUT2'] }
-        20:     { power_domain: VDD3P3_RTC_IO,  functions: ['USB_OTG_D+', 'ADC2_CH9', 'RTC_GPIO20', 'U1CTS', 'CLK_OUT1'] }
-        21:     { power_domain: VDD3P3_RTC_IO,  functions: ['RTC_GPIO21'] }
+        0:      { power_domain: VDD3P3_RTC_IO,  rtc: true, functions: [], strapping: "High for SPI Boot; Low for Download Mode", at_reset: PUP }
+        1:      { power_domain: VDD3P3_RTC_IO,  rtc: true, functions: ['TOUCH1', 'ADC1_CH0'] }
+        2:      { power_domain: VDD3P3_RTC_IO,  rtc: true, functions: ['TOUCH2', 'ADC1_CH1'] }
+        3:      { power_domain: VDD3P3_RTC_IO,  rtc: true, functions: ['TOUCH3', 'ADC1_CH2'] }
+        4:      { power_domain: VDD3P3_RTC_IO,  rtc: true, functions: ['TOUCH4', 'ADC1_CH3'] }
+        5:      { power_domain: VDD3P3_RTC_IO,  rtc: true, functions: ['TOUCH5', 'ADC1_CH4'] }
+        6:      { power_domain: VDD3P3_RTC_IO,  rtc: true, functions: ['TOUCH6', 'ADC1_CH5'] }
+        7:      { power_domain: VDD3P3_RTC_IO,  rtc: true, functions: ['TOUCH7', 'ADC1_CH6'] }
+        8:      { power_domain: VDD3P3_RTC_IO,  rtc: true, functions: ['TOUCH8', 'ADC1_CH7'] }
+        9:      { power_domain: VDD3P3_RTC_IO,  rtc: true, functions: ['TOUCH9', 'ADC1_CH8', 'FSPIHD'] }
+        10:     { power_domain: VDD3P3_RTC_IO,  rtc: true, functions: ['TOUCH10', 'ADC1_CH9', 'FSPIIO4', 'FSPICS0'] }
+        11:     { power_domain: VDD3P3_RTC_IO,  rtc: true, functions: ['TOUCH11', 'ADC2_CH0', 'FSPIIO5', 'FSPID'] }
+        12:     { power_domain: VDD3P3_RTC_IO,  rtc: true, functions: ['TOUCH12', 'ADC2_CH1', 'FSPIIO6', 'FSPICLK'] }
+        13:     { power_domain: VDD3P3_RTC_IO,  rtc: true, functions: ['TOUCH13', 'ADC2_CH2', 'FSPIIO7', 'FSPIQ'] }
+        14:     { power_domain: VDD3P3_RTC_IO,  rtc: true, functions: ['TOUCH14', 'ADC2_CH3', 'FSPIDQS', 'FSPIWP'] }
+        15:     { power_domain: VDD3P3_RTC_IO,  rtc: true, functions: ['XTAL_32K_P', 'ADC2_CH4', 'U0RTS'] }
+        16:     { power_domain: VDD3P3_RTC_IO,  rtc: true, functions: ['XTAL_32K_N', 'ADC2_CH5', 'U0CTS'] }
+        17:     { power_domain: VDD3P3_RTC_IO,  rtc: true, functions: ['DAC_1', 'ADC2_CH6', 'U1TXD'] }
+        18:     { power_domain: VDD3P3_RTC_IO,  rtc: true, functions: ['DAC_2', 'ADC2_CH7', 'U1RXD', 'CLK_OUT3'] }
+        19:     { power_domain: VDD3P3_RTC_IO,  rtc: true, functions: ['USB_OTG_D-', 'ADC2_CH8', 'U1RTS', 'CLK_OUT2'] }
+        20:     { power_domain: VDD3P3_RTC_IO,  rtc: true, functions: ['USB_OTG_D+', 'ADC2_CH9', 'U1CTS', 'CLK_OUT1'] }
+        21:     { power_domain: VDD3P3_RTC_IO,  rtc: true, functions: [] }
         26:     { power_domain: VDD_SPI,        functions: ['SPICS1'], at_reset: PUP }
         27:     { power_domain: VDD_SPI,        functions: ['SPIHD'], at_reset: PUP }
         28:     { power_domain: VDD_SPI,        functions: ['SPIWP'], at_reset: PUP }

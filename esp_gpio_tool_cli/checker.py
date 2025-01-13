@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
 # SPDX-License-Identifier: Apache-2.0
+from collections.abc import Hashable
 from typing import Any
-from typing import Hashable
 
 import yaml
 
@@ -79,7 +79,7 @@ def run_check(user_input: str | dict) -> list[str]:
             else:
                 fun_list = fun_value
             for pin in fun_list:
-                if pin not in ['INPUT', 'OUTPUT']:
+                if pin.upper() not in ['INPUT', 'OUTPUT']:
                     # Check if the function is valid and get the peripheral
                     per = esp.get_peripheral_from_function(pin)
 

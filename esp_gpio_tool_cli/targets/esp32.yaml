@@ -9,9 +9,6 @@ peripheral:
   UART:
     count: 3
     assigned_pins: [ "U{count}TXD", "U{count}RXD", "U{count}CTS", "U{count}RTS", "U0DTR", "U0DSR" ]  # DTR and DSR are only available on UART0
-  RTC:
-    count: 17
-    assigned_pins: [ "RTC_GPIO{count}" ]
   JTAG:
     count: 1
     assigned_pins: [ MTCK, MTDO, MTMS, MTDI ]
@@ -80,11 +77,11 @@ peripheral:
 
 # Note: PUP (wpu in datasheet) - pull up resistor enabled; PDOWN (wpd) - pull down resistor enabled
 gpio:
-  0:  { power_domain: VDD3P3_RTC, functions: [ ADC2_CH1, RTC_GPIO11, TOUCH1, EMAC_TX_CLK, CLK_OUT1 ], strapping: "High for SPI Boot; Low for Download Mode", at_reset: PUP }
+  0:  { power_domain: VDD3P3_RTC, rtc: true, functions: [ ADC2_CH1, TOUCH1, EMAC_TX_CLK, CLK_OUT1 ], strapping: "High for SPI Boot; Low for Download Mode", at_reset: PUP }
   1:  { power_domain: VDD3P3_CPU, functions: [ U0TXD, EMAC_RXD2, CLK_OUT3 ], at_reset: PUP }
-  2:  { power_domain: VDD3P3_RTC, functions: [ ADC2_CH2, RTC_GPIO12, TOUCH2, HSPIWP, SDHOST_CDATA_20, SD1_DATA0 ], strapping: "Low for Download Mode", at_reset: PDOWN }
+  2:  { power_domain: VDD3P3_RTC, rtc: true, functions: [ ADC2_CH2, TOUCH2, HSPIWP, SDHOST_CDATA_20, SD1_DATA0 ], strapping: "Low for Download Mode", at_reset: PDOWN }
   3:  { power_domain: VDD3P3_CPU, functions: [ U0RXD, CLK_OUT2 ], at_reset: PUP }
-  4:  { power_domain: VDD3P3_RTC, functions: [ ADC2_CH0, RTC_GPIO10, TOUCH0, EMAC_TX_ER, HSPIHD, SDHOST_CDATA_21, SD1_DATA1 ], at_reset: PDOWN }
+  4:  { power_domain: VDD3P3_RTC, rtc: true, functions: [ ADC2_CH0, TOUCH0, EMAC_TX_ER, HSPIHD, SDHOST_CDATA_21, SD1_DATA1 ], at_reset: PDOWN }
   5:  { power_domain: VDD3P3_CPU, functions: [ SDHOST_CDATA_16, EMAC_RX_CLK, VSPICS0 ], strapping: "SDIO Slave timing adjustment", at_reset: PUP }
   6:  { power_domain: VDD_SDIO,   functions: [ SDHOST_CCLK_1, U1CTS, SDIO0_CLK, SPICLK ], at_reset: PUP }
   7:  { power_domain: VDD_SDIO,   functions: [ SDHOST_CDATA_10, U2RTS, SDIO0_DATA0, SPIQ ], at_reset: PUP }
@@ -92,10 +89,10 @@ gpio:
   9:  { power_domain: VDD_SDIO,   functions: [ SDHOST_CDATA_12, U1RXD, SDIO0_DATA2, SPIHD ], at_reset: PUP }
   10: { power_domain: VDD_SDIO,   functions: [ SDHOST_CDATA_13, U1TXD, SDIO0_DATA3, SPIWP ], at_reset: PUP }
   11: { power_domain: VDD_SDIO,   functions: [ SDHOST_CCMD_1, U1RTS, SDIO0_CMD, SPICS0 ], at_reset: PUP }
-  12: { power_domain: VDD3P3_RTC, functions: [ ADC2_CH5, RTC_GPIO15, MTDI, TOUCH5, EMAC_TXD3, HSPIQ, SDHOST_CDATA_22, SDIO1_DATA2 ], strapping: "Voltage of Internal LDO", at_reset: PDOWN }
-  13: { power_domain: VDD3P3_RTC, functions: [ ADC2_CH4, RTC_GPIO14, MTCK, TOUCH4, EMAC_RX_ER, HSPID, SDHOST_CDATA_23, SDIO1_DATA3 ]}
-  14: { power_domain: VDD3P3_RTC, functions: [ ADC2_CH6, RTC_GPIO16, MTMS, TOUCH6, EMAC_TXD2, HSPICLK, SDHOST_CCLK_2, SDIO1_CLK ]}
-  15: { power_domain: VDD3P3_RTC, functions: [ ADC2_CH3, RTC_GPIO13, MTDO, TOUCH3, EMAC_RXD3, HSPICS0, SDHOST_CCMD_2, SDIO1_CMD ], strapping: "Toggle for Debugging Log over UART0", at_reset: PUP }
+  12: { power_domain: VDD3P3_RTC, rtc: true, functions: [ ADC2_CH5, MTDI, TOUCH5, EMAC_TXD3, HSPIQ, SDHOST_CDATA_22, SDIO1_DATA2 ], strapping: "Voltage of Internal LDO", at_reset: PDOWN }
+  13: { power_domain: VDD3P3_RTC, rtc: true, functions: [ ADC2_CH4, MTCK, TOUCH4, EMAC_RX_ER, HSPID, SDHOST_CDATA_23, SDIO1_DATA3 ]}
+  14: { power_domain: VDD3P3_RTC, rtc: true, functions: [ ADC2_CH6, MTMS, TOUCH6, EMAC_TXD2, HSPICLK, SDHOST_CCLK_2, SDIO1_CLK ]}
+  15: { power_domain: VDD3P3_RTC, rtc: true, functions: [ ADC2_CH3, MTDO, TOUCH3, EMAC_RXD3, HSPICS0, SDHOST_CCMD_2, SDIO1_CMD ], strapping: "Toggle for Debugging Log over UART0", at_reset: PUP }
   16: { power_domain: VDD_SDIO,   functions: [ SDHOST_CDATA_14, U2RXD, EMAC_CLK_OUT ]}
   17: { power_domain: VDD_SDIO,   functions: [ SDHOST_CDATA_15, U2TXD, EMAC_CLK_OUT_180 ]}
   18: { power_domain: VDD3P3_CPU, functions: [ SDHOST_CDATA_17, VSPICLK ]}
@@ -104,17 +101,17 @@ gpio:
   21: { power_domain: VDD3P3_CPU, functions: [ EMAC_TX_EN, VSPIHD ]}
   22: { power_domain: VDD3P3_CPU, functions: [ U0RTS, EMAC_TXD1, VSPIWP ]}
   23: { power_domain: VDD3P3_CPU, functions: [ SDHOST_STROBE_1, VSPID ]}
-  25: { power_domain: VDD3P3_RTC, functions: [ ADC2_CH8, RTC_GPIO6, DAC_1, EMAC_RXD0 ]}
-  26: { power_domain: VDD3P3_RTC, functions: [ ADC2_CH9, RTC_GPIO7, DAC_2, EMAC_RXD1 ]}
-  27: { power_domain: VDD3P3_RTC, functions: [ ADC2_CH7, RTC_GPIO17, TOUCH7. EMAC_RX_DV ]}
-  32: { power_domain: VDD3P3_RTC, functions: [ ADC1_CH4, RTC_GPIO9, TOUCH9, XTAL_32K_P ]}
-  33: { power_domain: VDD3P3_RTC, functions: [ ADC1_CH5, RTC_GPIO8, TOUCH8, XTAL_32K_N ]}
-  34: { power_domain: VDD3P3_RTC, functions: [ ADC1_CH6, RTC_GPIO4 ], is_output: false }
-  35: { power_domain: VDD3P3_RTC, functions: [ ADC1_CH7, RTC_GPIO5 ], is_output: false }
-  36: { power_domain: VDD3P3_RTC, functions: [ ADC1_CH0, RTC_GPIO0 ], is_output: false }
-  37: { power_domain: VDD3P3_RTC, functions: [ ADC1_CH1, RTC_GPIO1 ], is_output: false }
-  38: { power_domain: VDD3P3_RTC, functions: [ ADC1_CH2, RTC_GPIO2 ], is_output: false }
-  39: { power_domain: VDD3P3_RTC, functions: [ ADC1_CH3, RTC_GPIO3 ], is_output: false }
+  25: { power_domain: VDD3P3_RTC, rtc: true, functions: [ ADC2_CH8, DAC_1, EMAC_RXD0 ]}
+  26: { power_domain: VDD3P3_RTC, rtc: true, functions: [ ADC2_CH9, DAC_2, EMAC_RXD1 ]}
+  27: { power_domain: VDD3P3_RTC, rtc: true, functions: [ ADC2_CH7, TOUCH7. EMAC_RX_DV ]}
+  32: { power_domain: VDD3P3_RTC, rtc: true, functions: [ ADC1_CH4, TOUCH9, XTAL_32K_P ]}
+  33: { power_domain: VDD3P3_RTC, rtc: true, functions: [ ADC1_CH5, TOUCH8, XTAL_32K_N ]}
+  34: { power_domain: VDD3P3_RTC, rtc: true, functions: [ ADC1_CH6], is_output: false }
+  35: { power_domain: VDD3P3_RTC, rtc: true, functions: [ ADC1_CH7], is_output: false }
+  36: { power_domain: VDD3P3_RTC, rtc: true, functions: [ ADC1_CH0], is_output: false }
+  37: { power_domain: VDD3P3_RTC, rtc: true, functions: [ ADC1_CH1], is_output: false }
+  38: { power_domain: VDD3P3_RTC, rtc: true, functions: [ ADC1_CH2], is_output: false }
+  39: { power_domain: VDD3P3_RTC, rtc: true, functions: [ ADC1_CH3], is_output: false }
 
 soc:
   ESP32-PICO-D4: { reserved_pins: [ 6, 7, 8, 11, 16, 17], not_connected: [20] }  # quad flash

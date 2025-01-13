@@ -586,14 +586,6 @@ class CLKOUT(BasePeripheral):
         self.optional_pins = self.assigned_pins  # all pins are optional
 
 
-class RTC(BasePeripheral):
-    def __init__(
-        self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
-    ) -> None:
-        super().__init__(count, assigned_pins, universal_pins, **kwargs)
-        self.optional_pins = self.assigned_pins  # all pins are optional
-
-
 class TWAI(BasePeripheral):
     """Two-Wire Automotive Interface peripheral (CAN)"""
 

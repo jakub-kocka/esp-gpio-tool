@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+# SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
 # SPDX-License-Identifier: Apache-2.0
 from dataclasses import dataclass
 from dataclasses import field
@@ -21,6 +21,8 @@ class Pin:
     functions: list[str] = field(default_factory=list)
     at_reset: str | None = None
     assigned_function: list[str] = field(default_factory=list)
+    rtc: bool = False
+    lp: bool = False
 
     @property
     def used(self) -> bool:
@@ -34,13 +36,14 @@ class Pin:
 
     def assign_function(self, function: str) -> None:
         # Check for pin compatibility
+        function = function.upper()
         if function == 'INPUT' and not self.is_input:
             raise ValueError(f'Pin {self.pin} does not support input mode.')
         if function == 'OUTPUT' and not self.is_output:
             raise ValueError(f'Pin {self.pin} does not support output mode.')
 
-        # Only print these warnings and notes once; don't print for default Flash/PSRAM function
-        if (not self.assigned_function and function != 'Flash/PSRAM') or self.assigned_function == ['Flash/PSRAM']:
+        # Only print these warnings and notes once; don't print for default FLASH/PSRAM function
+        if (not self.assigned_function and function != 'FLASH/PSRAM') or self.assigned_function == ['FLASH/PSRAM']:
             # Strapping pin notes
             if self.strapping:
                 logger.warn(

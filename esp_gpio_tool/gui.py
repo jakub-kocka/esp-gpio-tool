@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+# SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
 # SPDX-License-Identifier: Apache-2.0
 import itertools
 import os
@@ -95,6 +95,7 @@ class GUI:
 
         restore_btn.bind('<Button-1>', restore_default)
 
+        SUPPORTED_CHIPS.sort()
         chips_cmb = ttk.Combobox(
             master=header_frm,
             state='readonly',
@@ -129,6 +130,9 @@ class GUI:
                 gpio = value.get()
                 if gpio == '-':
                     continue
+                if gpio in ['Input', 'Output']:
+                    # swap gpio and pin as they are defined in the opposite order for IO
+                    pin, gpio = gpio, pin
                 key = gpio.split('GPIO')[1].split(' ')[0]
 
                 if key in user_gpios:
@@ -248,9 +252,7 @@ class GUI:
                     column_sub_periph_mid_frm.bind('<Button-4>', on_mousewheel_linux_down)
                     column_sub_periph_mid_frm.bind('<Button-5>', on_mousewheel_linux_up)
 
-                column_sub_periph_right_frm = tk.Frame(
-                    master=row_sub_periph_frm,
-                )
+                column_sub_periph_right_frm = tk.Frame(master=row_sub_periph_frm)
                 column_sub_periph_right_frm.bind('<MouseWheel>', on_mousewheel)
                 if sys.platform == 'linux':
                     column_sub_periph_right_frm.bind('<Button-4>', on_mousewheel_linux_down)
@@ -354,6 +356,91 @@ class GUI:
                 row_sub_periph_frm.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
                 row_frm.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
                 color_switch += 1
+
+            # prepare grid for IO pins
+            row_frm = tk.Frame(
+                master=scrollable_frm,
+                bg=colors[color_switch % 2],
+            )
+            column_left_frm = tk.Frame(master=row_frm)
+            column_mid_frm = tk.Frame(master=row_frm)
+            row_sub_periph_frm = tk.Frame(master=column_mid_frm)
+
+            column_sub_periph_mid_frm = tk.Frame(master=row_sub_periph_frm, bg=row_frm['bg'])
+            column_sub_periph_mid_frm.bind('<MouseWheel>', on_mousewheel)
+            if sys.platform == 'linux':
+                column_sub_periph_mid_frm.bind('<Button-4>', on_mousewheel_linux_down)
+                column_sub_periph_mid_frm.bind('<Button-5>', on_mousewheel_linux_up)
+
+            column_sub_periph_right_frm = tk.Frame(master=row_sub_periph_frm)
+            column_sub_periph_right_frm.bind('<MouseWheel>', on_mousewheel)
+            if sys.platform == 'linux':
+                column_sub_periph_right_frm.bind('<Button-4>', on_mousewheel_linux_down)
+                column_sub_periph_right_frm.bind('<Button-5>', on_mousewheel_linux_up)
+            peripheral_lbl = tk.Label(master=column_left_frm, text='GPIO', width=15, bg=row_frm['bg'], fg='black')
+            peripheral_lbl.pack(side=tk.LEFT, anchor=tk.NW, fill=tk.BOTH, expand=True)
+            peripheral_lbl.bind('<MouseWheel>', on_mousewheel)
+
+            sub_periph_lbl = tk.Label(
+                master=column_sub_periph_mid_frm,
+                text='',
+                height=len(self.target.gpios),
+                bg=row_frm['bg'],
+                fg='black',
+            )
+            sub_periph_lbl.pack(side=tk.TOP, anchor=tk.CENTER, fill=tk.BOTH, expand=True)
+            sub_periph_lbl.bind('<MouseWheel>', on_mousewheel)
+            if sys.platform == 'linux':
+                sub_periph_lbl.bind('<Button-4>', on_mousewheel_linux_down)
+                sub_periph_lbl.bind('<Button-5>', on_mousewheel_linux_up)
+            line_sub_cns = tk.Canvas(master=column_sub_periph_mid_frm, height=1, background='grey')
+            line_sub_cns.pack(side=tk.TOP, anchor=tk.S, expand=True, fill=tk.X)
+            line_sub_cns.bind('<MouseWheel>', on_mousewheel)
+            if sys.platform == 'linux':
+                line_sub_cns.bind('<Button-4>', on_mousewheel_linux_down)
+                line_sub_cns.bind('<Button-5>', on_mousewheel_linux_up)
+
+            pin_row = 0
+            for gpio in self.target.gpios.values():
+                name = f'GPIO{gpio.pin}'
+                # add notes if pin can be used in sleep mode or with LP core
+                if gpio.lp:  # RTC and LP pins are shared on ESP32-C6 and onwards
+                    name += ' (LP)'
+                if gpio.rtc:  # pin can be used in sleep mode
+                    name += ' (RTC/deep-sleep)'
+                pin_lbl = tk.Label(
+                    master=column_sub_periph_right_frm, text=name, width=30, bg=row_frm['bg'], fg='black'
+                )
+                pin_lbl.grid(row=pin_row, column=0, sticky='nsew')
+                pin_lbl.bind('<MouseWheel>', on_mousewheel)
+                if sys.platform == 'linux':
+                    pin_lbl.bind('<Button-4>', on_mousewheel_linux_down)
+                    pin_lbl.bind('<Button-5>', on_mousewheel_linux_up)
+
+                pins_values[f'GPIO{gpio.pin}'] = ttk.Combobox(
+                    master=column_sub_periph_right_frm,
+                    state='readonly',
+                    values=['-', 'Input', 'Output'],
+                    justify='center',
+                )
+                pins_values[f'GPIO{gpio.pin}'].current(0)
+                pins_values[f'GPIO{gpio.pin}'].grid(row=pin_row, column=1, sticky='nsew')
+
+                pin_row += 1
+
+            line_cns = tk.Canvas(master=column_sub_periph_right_frm, height=1, background='grey')
+            line_cns.grid(row=pin_row + 1, column=0, columnspan=2, sticky='nsew')
+            line_cns.bind('<MouseWheel>', on_mousewheel)
+            if sys.platform == 'linux':
+                line_cns.bind('<Button-4>', on_mousewheel_linux_down)
+                line_cns.bind('<Button-5>', on_mousewheel_linux_up)
+
+            column_left_frm.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+            column_mid_frm.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+            column_sub_periph_mid_frm.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+            column_sub_periph_right_frm.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+            row_sub_periph_frm.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+            row_frm.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
             scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
             canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)

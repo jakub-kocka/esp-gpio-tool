@@ -40,12 +40,12 @@ peripheral:
     assigned_pins: [ XTAL_32K_P, XTAL_32K_N ]
 
 gpio:
-  0:  { power_domain: VDD3P3_RTC,     functions: ['XTAL_32K_P', 'ADC1_CH0'] }
-  1:  { power_domain: VDD3P3_RTC,     functions: ['XTAL_32K_N', 'ADC1_CH1'] }
-  2:  { power_domain: VDD3P3_RTC,     functions: ['ADC1_CH2', 'FSPIQ'], strapping: "Has to be pulled-up for SPI and Download boot" }
-  3:  { power_domain: VDD3P3_RTC,     functions: ['ADC1_CH3'] }
-  4:  { power_domain: VDD3P3_RTC,     functions: ['ADC1_CH4', 'MTMS', 'FSPIHD'] }
-  5:  { power_domain: VDD3P3_RTC,     functions: ['ADC2_CH0', 'MTDI', 'FSPIWP'] }
+  0:  { power_domain: VDD3P3_RTC,     rtc: true, functions: ['XTAL_32K_P', 'ADC1_CH0'] }
+  1:  { power_domain: VDD3P3_RTC,     rtc: true, functions: ['XTAL_32K_N', 'ADC1_CH1'] }
+  2:  { power_domain: VDD3P3_RTC,     rtc: true, functions: ['ADC1_CH2', 'FSPIQ'], strapping: "Has to be pulled-up for SPI and Download boot" }
+  3:  { power_domain: VDD3P3_RTC,     rtc: true, functions: ['ADC1_CH3'] }
+  4:  { power_domain: VDD3P3_RTC,     rtc: true, functions: ['ADC1_CH4', 'MTMS', 'FSPIHD'] }
+  5:  { power_domain: VDD3P3_RTC,     rtc: true, functions: ['ADC2_CH0', 'MTDI', 'FSPIWP'] }
   6:  { power_domain: VDD3P3_CPU,     functions: ['MTCK', 'FSPICLK'] }
   7:  { power_domain: VDD3P3_CPU,     functions: ['MTDO', 'FSPID'] }
   8:  { power_domain: VDD3P3_CPU,     functions: [], strapping: "ROM messages printing control; high for download mode" }
