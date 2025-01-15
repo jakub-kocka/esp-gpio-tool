@@ -63,14 +63,14 @@ peripheral:
 
 # Note: PUP (wpu in datasheet) - pull up resistor enabled; PDOWN (wpu) - pull down resistor enabled
 gpio:
-  0:  { power_domain: VDDPST1, functions: ['XTAL_32K_P', 'ADC1_CH0', 'LP_GPIO0', 'LP_UART_DTRN'] }
-  1:  { power_domain: VDDPST1, functions: ['XTAL_32K_N', 'ADC1_CH1', 'LP_GPIO1', 'LP_UART_DSRN'] }
-  2:  { power_domain: VDDPST1, functions: ['ADC1_CH2', 'FSPIQ', 'LP_GPIO2', 'LP_UART_RTSN'] }
-  3:  { power_domain: VDDPST1, functions: ['ADC1_CH3', 'LP_GPIO3', 'LP_UART_CTSN'] }
-  4:  { power_domain: VDDPST1, functions: ['ADC1_CH4', 'MTMS', 'FSPIHD', 'LP_GPIO4', 'LP_UART_RXD'], strapping: "Control SDIO sampling on raising (pin is high) and falling (low) edge." }
-  5:  { power_domain: VDDPST1, functions: ['ADC1_CH5', 'MTDI', 'FSPIWP', 'LP_GPIO5', 'LP_UART_TXD'], strapping: "Control SDIO output on raising (pin is high) and falling (low) edge." }
-  6:  { power_domain: VDDPST1, functions: ['ADC1_CH6', 'MTCK', 'FSPICLK', 'LP_GPIO6', 'LP_I2C_SDA'] }
-  7:  { power_domain: VDDPST1, functions: ['MTDO', 'FSPID', 'LP_GPIO7', 'LP_I2C_SCL'] }
+  0:  { power_domain: VDDPST1, lp: true, functions: ['XTAL_32K_P', 'ADC1_CH0', 'LP_UART_DTRN'] }
+  1:  { power_domain: VDDPST1, lp: true, functions: ['XTAL_32K_N', 'ADC1_CH1', 'LP_UART_DSRN'] }
+  2:  { power_domain: VDDPST1, lp: true, functions: ['ADC1_CH2', 'FSPIQ', 'LP_UART_RTSN'] }
+  3:  { power_domain: VDDPST1, lp: true, functions: ['ADC1_CH3', 'LP_UART_CTSN'] }
+  4:  { power_domain: VDDPST1, lp: true, functions: ['ADC1_CH4', 'MTMS', 'FSPIHD', 'LP_UART_RXD'], strapping: "Control SDIO sampling on raising (pin is high) and falling (low) edge." }
+  5:  { power_domain: VDDPST1, lp: true, functions: ['ADC1_CH5', 'MTDI', 'FSPIWP', 'LP_UART_TXD'], strapping: "Control SDIO output on raising (pin is high) and falling (low) edge." }
+  6:  { power_domain: VDDPST1, lp: true, functions: ['ADC1_CH6', 'MTCK', 'FSPICLK', 'LP_I2C_SDA'] }
+  7:  { power_domain: VDDPST1, lp: true, functions: ['MTDO', 'FSPID', 'LP_I2C_SCL'] }
   8:  { power_domain: VDDPST2, functions: [], strapping: "Has to be pulled-up for Download Mode" }
   9:  { power_domain: VDDPST2, functions: [], strapping: "High for SPI Boot; Low for Download Mode", at_reset: PUP }
   10: { power_domain: VDDPST2, functions: [] }

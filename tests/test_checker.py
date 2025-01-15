@@ -216,7 +216,7 @@ def test_flash_pin_reuse() -> None:
     out = run(config)
     assert (
         'Warning: Pin 6 has been used multiple times, reusing pins is not recommended. '
-        'Assigned functions: Flash/PSRAM, U1CTS' in out
+        'Assigned functions: FLASH/PSRAM, U1CTS' in out
     )
 
 
