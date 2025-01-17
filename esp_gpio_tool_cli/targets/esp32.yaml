@@ -8,7 +8,8 @@ peripheral:
     assigned_pins: [ "DAC_{count}" ]
   UART:
     count: 3
-    assigned_pins: [ "U{count}TXD", "U{count}RXD", "U{count}CTS", "U{count}RTS", "U0DTR", "U0DSR" ]  # DTR and DSR are only available on UART0
+    assigned_pins: [ "U{count}TXD", "U{count}RXD", "U{count}CTS", "U{count}RTS" ]
+    universal_pins: [ "U0DTR", "U0DSR" ]  # DTR and DSR are only available on UART0
   JTAG:
     count: 1
     assigned_pins: [ MTCK, MTDO, MTMS, MTDI ]
