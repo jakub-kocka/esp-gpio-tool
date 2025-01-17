@@ -220,6 +220,8 @@ class GUI:
                 variants_cmb['values'] = ['-'] + self.target.soc_list
                 variants_cmb.set('Optional SoC variant')
             modes.clear()
+            # reset the canvas position
+            canvas.yview_moveto(0)
 
             # clearing GUI and dictionary for GPIOs
             if event:
