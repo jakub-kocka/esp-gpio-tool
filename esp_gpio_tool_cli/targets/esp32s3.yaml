@@ -5,7 +5,8 @@ peripheral:
     assigned_pins: [ "ADC{count}_CH{{channel}}" ]
   UART:
     count: 3
-    assigned_pins: [ "U{count}TXD", "U{count}RXD", "U{count}CTS", "U{count}RTS", "U{count}DTR", "U{count}DSR" ]
+    assigned_pins: [ "U0TXD", "U0RXD", "U0CTS", "U0RTS", "U1TXD", "U1RXD", "U1CTS", "U1RTS" ]
+    universal_pins: [ "U{count}DTR", "U{count}DSR", "U2TXD", "U2RXD", "U2CTS", "U2RTS"]
   JTAG:
     count: 1
     assigned_pins: [ MTCK, MTDO, MTMS, MTDI ]
