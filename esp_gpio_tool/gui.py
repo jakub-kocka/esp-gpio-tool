@@ -11,6 +11,7 @@ try:
     from tkinter import ttk
 except ImportError as exc:
     raise SystemExit('Please install Python Tkinter, for more information see the documentation.') from exc
+from collections import defaultdict
 
 from esp_gpio_tool_cli.checker import run_check
 from esp_gpio_tool_cli.chip import ESP
@@ -122,7 +123,7 @@ class GUI:
             """GPIO check button event handler
             - prepares user defined GPIOs for checker input and runs checker
             """
-            user_gpios: dict[str, str | list] = {'chip': chips_cmb.get()}
+            user_gpios: dict = {'chip': chips_cmb.get()}
             variant = variants_cmb.get()
             if variant not in ['-', 'Optional SoC variant']:
                 user_gpios['soc'] = variant
@@ -143,7 +144,9 @@ class GUI:
                 else:
                     user_gpios[key] = pin
 
-            check = '\n '.join(run_check(user_input=user_gpios))
+            user_gpios['peripheral'] = modes
+
+            check = '\n'.join(run_check(user_input=user_gpios))
             if 'error' in check.lower():
                 messagebox.showerror('Check - Error', check)
             elif 'warning' in check.lower():
@@ -154,6 +157,7 @@ class GUI:
         check_btn.bind('<Button-1>', on_button)
 
         pins_values: dict[str, ttk.Combobox] = {}
+        modes: dict[str, dict[str, str]] = defaultdict(lambda: defaultdict(str))  # peripheral: {sub_peripheral: mode}
         self.target: ESP = ESP(chips_cmb.get())
 
         def mode_changed(event: tk.Event, peripheral: BasePeripheral, sub_peripheral: str) -> None:
@@ -161,10 +165,12 @@ class GUI:
             - sets the peripheral mode
             - disables/enables GPIO for specific mode
             """
+            # remove "Data width: " from mode label if present (e.g. in SDIO)
             mode = event.widget.get().split(': ')
             mode = mode[1] if len(mode) == 2 else mode[0]
 
             peripheral.set_mode(sub_peripheral, mode)
+            modes[peripheral.name][sub_peripheral] = mode
 
             for pin in peripheral.all_pins[sub_peripheral]:
                 if pin in peripheral.filtered_pins[sub_peripheral]:
@@ -213,6 +219,9 @@ class GUI:
             else:
                 variants_cmb['values'] = ['-'] + self.target.soc_list
                 variants_cmb.set('Optional SoC variant')
+            modes.clear()
+            # reset the canvas position
+            canvas.yview_moveto(0)
 
             # clearing GUI and dictionary for GPIOs
             if event:
