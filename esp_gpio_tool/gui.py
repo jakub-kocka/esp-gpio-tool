@@ -3,6 +3,9 @@
 import itertools
 import os
 import sys
+from collections import defaultdict
+
+import yaml
 
 try:
     import tkinter as tk
@@ -11,7 +14,6 @@ try:
     from tkinter import ttk
 except ImportError as exc:
     raise SystemExit('Please install Python Tkinter, for more information see the documentation.') from exc
-from collections import defaultdict
 
 from esp_gpio_tool_cli.checker import run_check
 from esp_gpio_tool_cli.chip import ESP
@@ -119,10 +121,7 @@ class GUI:
 
         header_frm.pack(side=tk.TOP, fill=tk.BOTH)
 
-        def on_button(_: tk.Event) -> None:
-            """GPIO check button event handler
-            - prepares user defined GPIOs for checker input and runs checker
-            """
+        def get_config() -> dict:
             user_gpios: dict = {'chip': chips_cmb.get()}
             variant = variants_cmb.get()
             if variant not in ['-', 'Optional SoC variant']:
@@ -144,8 +143,15 @@ class GUI:
                 else:
                     user_gpios[key] = pin
 
-            user_gpios['peripheral'] = modes
+            # convert modes to a regular dictionary from defaultdict
+            user_gpios['peripheral'] = {k: dict(v) for k, v in modes.items()}
+            return user_gpios
 
+        def on_button(_: tk.Event) -> None:
+            """GPIO check button event handler
+            - prepares user defined GPIOs for checker input and runs checker
+            """
+            user_gpios = get_config()
             check = '\n'.join(run_check(user_input=user_gpios))
             if 'error' in check.lower():
                 messagebox.showerror('Check - Error', check)
@@ -155,6 +161,29 @@ class GUI:
                 messagebox.showinfo('Check', check)
 
         check_btn.bind('<Button-1>', on_button)
+
+        export_btn = tk.Button(master=header_frm, text='Export')
+        export_btn.pack(side=tk.RIGHT, anchor=tk.E)
+
+        def export(_: tk.Event) -> None:
+            """Export button event handler
+            - opens a new window with a textbox containing user_gpios
+            """
+            top = tk.Toplevel()
+            top.title('GPIO configuration')
+
+            text = tk.Text(master=top, wrap='word')
+            text.pack(expand=True, fill='both', padx=10, pady=10)
+
+            # Convert user_gpios to a YAML string for display
+            user_gpios_str = yaml.dump(get_config(), default_flow_style=False, sort_keys=False)
+            text.insert('1.0', user_gpios_str)
+            text.configure(state='disabled')
+
+            cancel_btn = tk.Button(master=top, text='Cancel', command=top.destroy)
+            cancel_btn.pack(side=tk.RIGHT, pady=5)
+
+        export_btn.bind('<Button-1>', export)
 
         pins_values: dict[str, ttk.Combobox] = {}
         modes: dict[str, dict[str, str]] = defaultdict(lambda: defaultdict(str))  # peripheral: {sub_peripheral: mode}
