@@ -102,7 +102,7 @@ python -m esp_gpio_tool
 or
 
 ```sh
-espins check myconfig.yaml
+espins
 ```
 
 #### Input File
@@ -138,7 +138,7 @@ chip: esp32
 
 peripheral:
   SPI:
-    HSPI: QSPI
+    HSPI: Quad SPI
 
 2:  HSPIWP
 4:  HSPIHD
