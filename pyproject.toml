@@ -91,7 +91,7 @@
 [tool.commitizen]
     version                    = "0.0.0"
     major_version_zero         = true
-    update_changelog_on_bump   = true
+    update_changelog_on_bump   = false
     tag_format                 = "v$version"
     annotated_tag              = true
     changelog_merge_prerelease = true
