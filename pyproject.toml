@@ -89,7 +89,7 @@
     no_implicit_optional     = false
 
 [tool.commitizen]
-    version                    = "0.0.0"
+    version                    = "0.1.0"
     major_version_zero         = true
     update_changelog_on_bump   = false
     tag_format                 = "v$version"
