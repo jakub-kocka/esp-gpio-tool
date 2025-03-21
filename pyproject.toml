@@ -89,10 +89,11 @@
     no_implicit_optional     = false
 
 [tool.commitizen]
-    version                    = "0.0.0"
+    version                    = "0.1.0"
     major_version_zero         = true
     update_changelog_on_bump   = true
     tag_format                 = "v$version"
+    changelog_start_rev        = "v0.1.0"
     annotated_tag              = true
     changelog_merge_prerelease = true
     bump_message               = "change: Updated release version to v$new_version"
