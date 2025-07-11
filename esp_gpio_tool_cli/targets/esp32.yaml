@@ -78,9 +78,9 @@ peripheral:
 gpio:
   0: {power_domain: VDD3P3_RTC, rtc: true, functions: [ADC2_CH1, TOUCH1, EMAC_TX_CLK, CLK_OUT1], strapping: High for SPI Boot; Low for Download Mode, at_reset: PUP}
   1: {power_domain: VDD3P3_CPU, functions: [U0TXD, EMAC_RXD2, CLK_OUT3], at_reset: PUP}
-  2: {power_domain: VDD3P3_RTC, rtc: true, functions: [ADC2_CH2, TOUCH2, HSPIWP, SDHOST_CDATA_20, SD1_DATA0], strapping: Low for Download Mode, at_reset: PDOWN}
+  2: {power_domain: VDD3P3_RTC, rtc: true, functions: [ADC2_CH2, TOUCH2, HSPIWP, SDHOST_CDATA_20, SDIO1_DATA0], strapping: Low for Download Mode, at_reset: PDOWN}
   3: {power_domain: VDD3P3_CPU, functions: [U0RXD, CLK_OUT2], at_reset: PUP}
-  4: {power_domain: VDD3P3_RTC, rtc: true, functions: [ADC2_CH0, TOUCH0, EMAC_TX_ER, HSPIHD, SDHOST_CDATA_21, SD1_DATA1], at_reset: PDOWN}
+  4: {power_domain: VDD3P3_RTC, rtc: true, functions: [ADC2_CH0, TOUCH0, EMAC_TX_ER, HSPIHD, SDHOST_CDATA_21, SDIO1_DATA1], at_reset: PDOWN}
   5: {power_domain: VDD3P3_CPU, functions: [SDHOST_CDATA_16, EMAC_RX_CLK, VSPICS0], strapping: SDIO Slave timing adjustment, at_reset: PUP}
   6: {power_domain: VDD_SDIO, functions: [SDHOST_CCLK_1, U1CTS, SDIO0_CLK, SPICLK], at_reset: PUP}
   7: {power_domain: VDD_SDIO, functions: [SDHOST_CDATA_10, U2RTS, SDIO0_DATA0, SPIQ], at_reset: PUP}
