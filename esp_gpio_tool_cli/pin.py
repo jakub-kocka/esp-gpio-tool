@@ -20,13 +20,13 @@ class Pin:
     strapping: str | None = None
     functions: list[str] = field(default_factory=list)
     at_reset: str | None = None
-    assigned_function: list[str] = field(default_factory=list)
+    assigned_functions: list[str] = field(default_factory=list)
     rtc: bool = False
     lp: bool = False
 
     @property
     def used(self) -> bool:
-        return bool(self.assigned_function)
+        return bool(self.assigned_functions)
 
     def __str__(self) -> str:
         return f'GPIO{self.pin} - {self.power_domain}'
@@ -43,7 +43,7 @@ class Pin:
             raise ValueError(f'Pin {self.pin} does not support output mode.')
 
         # Only print these warnings and notes once; don't print for default FLASH/PSRAM function
-        if (not self.assigned_function and function != 'FLASH/PSRAM') or self.assigned_function == ['FLASH/PSRAM']:
+        if (not self.assigned_functions and function != 'FLASH/PSRAM') or self.assigned_functions == ['FLASH/PSRAM']:
             # Strapping pin notes
             if self.strapping:
                 logger.warn(
@@ -72,4 +72,4 @@ class Pin:
                     f'Serial function: {serial_function[0]}'
                 )
 
-        self.assigned_function.append(function)
+        self.assigned_functions.append(function)

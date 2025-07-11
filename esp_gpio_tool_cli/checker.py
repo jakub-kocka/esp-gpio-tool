@@ -94,10 +94,10 @@ def run_check(user_input: str | dict) -> list[str]:
 
     # check if the pin is used multiple times and print warning
     for gpio in esp.gpios.values():
-        if len(gpio.assigned_function) > 1:
+        if len(gpio.assigned_functions) > 1:
             logger.warn(
                 f'Pin {gpio.pin} has been used multiple times, reusing pins is not recommended. '
-                f'Assigned functions: {", ".join(gpio.assigned_function)}'
+                f'Assigned functions: {", ".join(gpio.assigned_functions)}'
             )
 
     # check if all peripherals that has been used have all non-optional pins used

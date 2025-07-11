@@ -1,9 +1,10 @@
-# SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+# SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
 # SPDX-License-Identifier: Apache-2.0
 import os
 import re
 import sys
 from functools import cached_property
+from itertools import chain
 
 import yaml
 
@@ -62,12 +63,12 @@ class ESP:
     @property
     def assigned_pins(self) -> list[Pin]:
         """Return pins that have been assigned a function"""
-        return [pin for pin in self.gpios.values() if pin.assigned_function]
+        return [pin for pin in self.gpios.values() if pin.assigned_functions]
 
     @property
     def free_pins(self) -> list[Pin]:
         """Return pins that have not been assigned a function"""
-        return [pin for pin in self.gpios.values() if not pin.assigned_function]
+        return [pin for pin in self.gpios.values() if not pin.assigned_functions]
 
     @property
     def used_peripherals(self) -> list[BasePeripheral]:
@@ -153,16 +154,6 @@ class ESP:
 
     def check(self) -> None:
         """Check if required pins by each used peripheral are assigned"""
+        assigned_functions = list(chain.from_iterable([pin.assigned_functions for pin in self.assigned_pins]))
         for peripheral in self.used_peripherals:
-            for instance, used in peripheral.used.items():
-                if not used:
-                    continue
-                for function in peripheral.required_pins(instance):
-                    for pin in self.gpios.values():
-                        if function in pin.assigned_function:
-                            break
-                    else:
-                        logger.error(
-                            f'Required function {function} from peripheral {peripheral.name} '
-                            'is not assigned to any pin.'
-                        )
+            peripheral.check_required_pins(assigned_functions)
