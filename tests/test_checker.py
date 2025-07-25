@@ -251,3 +251,46 @@ def test_reuse_debug_pins() -> None:
     assert 'Warning: Pin 19 is reserved for JTAG debugging or USB.' in out
     assert 'Warning: Pin 39 is reserved for JTAG debugging or USB.' in out
     assert 'Warning: Pin 43 is reserved for serial debug/programming.' in out
+
+
+def test_allow_one_way_uart() -> None:
+    config = """
+    chip: esp32
+    1: U0RXD
+    """
+    out = '\n'.join(run(config))
+    assert 'Error' not in out
+    assert (
+        'Note: U0TXD is missing. The chip will be able to only receive data via UART in the current configuration.'
+        in out
+    )
+
+
+def test_uart_no_rx_tx() -> None:
+    """Assing only DTR and expect error for missing RXD or TXD"""
+    config = """
+    chip: esp32
+    1: U0DTR
+    """
+    out = '\n'.join(run(config))
+    assert 'Error: U0RXD or U0TXD is required for UART0.' in out
+
+
+def test_allow_one_way_spi() -> None:
+    config = """
+    chip: esp32
+    1: HSPIQ
+    2: HSPICLK
+    """
+    out = '\n'.join(run(config))
+    assert 'Error' not in out
+    assert 'Note: HSPID is required for Full Duplex Single SPI mode.' in out
+
+
+def test_spi_no_q_d() -> None:
+    config = """
+    chip: esp32
+    1: HSPICLK
+    """
+    out = '\n'.join(run(config))
+    assert 'Error: HSPIQ or HSPID is required for Single SPI mode.' in out

@@ -74,6 +74,11 @@ class BasePeripheral:
         """Return all assigned and universal pins, filtered by selected mode"""
         return {i: self.assigned_pins.get(i, []) + self.universal_pins.get(i, []) for i in self.instances}
 
+    @property
+    def used_instances(self) -> list[str]:
+        """Return all used instances"""
+        return [i for i in self.instances if self.used[i]]
+
     def use(self, function: str, pin: Pin) -> None:
         """Check the pin if it can be used for this function and mark peripheral as used"""
         for instance in self.instances:
@@ -89,6 +94,14 @@ class BasePeripheral:
             if function not in pin.functions:
                 raise ValueError(f'Pin {pin.pin} does not support function {function}.')
         # TODO add check for input/output capabilities of the pin
+
+    def check_required_pins(self, assigned_functions: list[str]) -> None:
+        """Check if all required pins are assigned"""
+        for instance in self.used_instances:
+            required_pins = self.required_pins(instance)
+            for pin in required_pins:
+                if pin not in assigned_functions:
+                    logger.error(f'Required function {pin} from peripheral {self.name} is not assigned to any pin.')
 
     def required_pins(self, instance: str) -> list[str]:
         """Return all required pins for a peripheral instance"""
@@ -201,6 +214,12 @@ class SPI(BasePeripheral):
             key: list(filter(opt_filter, pins + self._universal_pins.get(key, [])))
             for key, pins in self._assigned_pins.items()
         }
+        # In Single SPI mode, make SPIQ and SPID optional as there can be a 3 wire one-way or half-duplex SPI connection
+        for instance in self.instances:
+            if self.mode[instance] == 'Single SPI':
+                self.optional_pins[instance].extend(
+                    [pin for pin in self.all_pins[instance] if re.match(r'.?SPI(Q|D)', pin)]
+                )
 
     @property
     def assigned_pins(self) -> dict[str, list[str]]:
@@ -266,6 +285,23 @@ class SPI(BasePeripheral):
                 'which will lead to slower transfer speeds and clock frequencies only up to 40 MHz.'
             )
 
+    def check_required_pins(self, assigned_functions: list[str]) -> None:
+        super().check_required_pins(assigned_functions)
+        for instance in self.used_instances:
+            if self.mode[instance] == 'Single SPI':
+                # Check for SPIQ and SPID with possible prefixes (e.g., FSPIQ, FSPID, etc.)
+                has_spiq = f'{instance}Q' in assigned_functions
+                has_spid = f'{instance}D' in assigned_functions
+                if not has_spiq and not has_spid:
+                    logger.error(
+                        f'{instance}Q or {instance}D is required for Single SPI mode. '
+                        f'Please assign at least one of them to {instance}.'
+                    )
+                elif not has_spiq:
+                    logger.note(f'{instance}Q is required for Full Duplex Single SPI mode.')
+                elif not has_spid:
+                    logger.note(f'{instance}D is required for Full Duplex Single SPI mode.')
+
 
 class I2C(BasePeripheral):
     def __init__(
@@ -308,7 +344,7 @@ class UART(BasePeripheral):
         self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
     ) -> None:
         super().__init__(count, assigned_pins, universal_pins, common_prefix=r'U\d.')
-        self.optional_pins = self.unwrap_pins(['U{count}CTS', 'U{count}RTS', 'U{count}DTR', 'U{count}DSR'])
+        self.optional_pins = self.all_pins  # all pins are optional, as we allow one way UART connections
         self.reassignable = True
 
     def check_pin_function(self, instance: str, function: str, pin: Pin) -> None:
@@ -322,6 +358,28 @@ class UART(BasePeripheral):
                 'It is recomanded to use pins from IO MUX if you need very high UART baud rates (over 40 MHz).'
             )
 
+    def check_required_pins(self, assigned_functions: list[str]) -> None:
+        super().check_required_pins(assigned_functions)
+        for instance in self.used_instances:
+            has_rx = f'U{instance}RXD' in assigned_functions
+            has_tx = f'U{instance}TXD' in assigned_functions
+            if not has_rx and not has_tx:
+                # make sure that at least one of RX or TX is assigned if any optional pins are assigned
+                logger.error(
+                    f'U{instance}RXD or U{instance}TXD is required for UART{instance}. '
+                    f'Please assign at least one of them.'
+                )
+            elif not has_rx:
+                logger.note(
+                    f'U{instance}RXD is missing. The chip will be able to only transmit data via UART '
+                    'in the current configuration.'
+                )
+            elif not has_tx:
+                logger.note(
+                    f'U{instance}TXD is missing. The chip will be able to only receive data via UART '
+                    'in the current configuration.'
+                )
+
 
 class LPUART(BasePeripheral):
     """Low power UART peripheral"""
@@ -330,9 +388,7 @@ class LPUART(BasePeripheral):
         self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
     ) -> None:
         super().__init__(count, assigned_pins, universal_pins, common_prefix='LP_UART')
-        self.optional_pins = self.unwrap_pins(
-            list(set(assigned_pins) - set(['LP_UART_RXD', 'LP_UART_TXD']))  # type: ignore
-        )
+        self.optional_pins = self.unwrap_pins(assigned_pins)
 
 
 class SDIO(BasePeripheral):
