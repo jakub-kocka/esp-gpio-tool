@@ -21,16 +21,8 @@
 
 
     [project.optional-dependencies]
-        ci-quality = [
-            "pylint-gitlab~=2.0.0",
-            "pylint-quotes~=0.2.3",
-            "pylint==2.17.5",
-        ]
         dev = [
             "commitizen~=3.10.1",
-            "pip-tools~=7.3",
-            "pytest-cov~=4.1.0",
-            "pytest~=7.4.0",
             "pandas[excel]~=2.2.2",
         ]
         test = ["pytest-cov~=4.1.0", "pytest~=7.4.0"]
@@ -42,41 +34,17 @@
 
 [tool.codespell]
     skip = 'tests/*'
-
-[tool.pylint]
-    [tool.pylint.MASTER]
-        ignore-paths = ["tests/.*"] # Paths to ignore during linting
-    [tool.pylint.'BASIC']
-        variable-rgx = "[a-z_][a-z0-9_]{1,30}$" # Variable names must start with a lowercase letter or underscore, followed by any combination of lowercase letters, numbers, or underscores, with a total length of 2 to 30 characters.
-    [tool.pylint.'MESSAGES CONTROL']
-        disable = [
-            "duplicate-code",                # R0801: Similar lines in %s files
-            "fixme",                         # W0511: Used when TODO/FIXME is encountered
-            "import-error",                  # E0401: Used when pylint has been unable to import a module
-            "import-outside-toplevel",       # E0402: Imports should usually be on top of the module
-            "logging-fstring-interpolation", # W1202: Use % formatting in logging functions and pass the % parameters as arguments
-            "missing-class-docstring",       # C0115: Missing class docstring
-            "missing-function-docstring",    # C0116: Missing function or method docstring
-            "missing-module-docstring",      # C0114: Missing module docstring
-            "no-name-in-module",             # W0611: Used when a name cannot be found in a module
-            "too-few-public-methods",        # R0903: Too few public methods of class
-            "too-many-branches",             # R0912: Too many branches
-            "too-many-locals",               # R0914: Too many local variables
-            "too-many-return-statements",    # R0911: Too many return statements
-            "too-many-statements",           # R0915: Too many statements
-            "ungrouped-imports",             # C0412: Imports should be grouped by packages
-            "too-many-instance-attributes",  # R0902: Too many instance attributes
-        ]
-    [tool.pylint.'FORMAT']
-        max-line-length = 120 # Specifies the maximum line length for pylint checks
+    ignore-words-list = ['emac']
 
 [tool.ruff]
-    line-length    = 120                                                    # Specifies the maximum line length for ruff checks
-    lint.select         = ['E', 'F', 'W']                                        # Types of issues ruff should check for
-    target-version = "py310" # Specifies the target Python version for ruff checks
+    line-length    = 120
+    lint.select    = ['E', 'F', 'W', 'UP', 'I']
+    target-version = "py310"
 
-    [tool.ruff.format] # See formatter config options at https://docs.astral.sh/ruff/formatter
+    [tool.ruff.format]
         quote-style = "single"
+    [tool.ruff.lint.isort]
+        force-single-line = true
 
 [tool.mypy]
     disallow_incomplete_defs = false                               # Disallows defining functions with incomplete type annotations

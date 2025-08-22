@@ -100,32 +100,6 @@ codebase-tests:
 # ------------------------------------------------------------------------------------------------------
 
 # ------------------------------------------------------------------------------------------------------
-# Code quality
-# ------------------------------------------------------------------------------------------------------
-codebase-quality:
-  stage: test
-  image: python:3.10-alpine3.18
-  needs: [] # Do not wait for previous stages
-  before_script:
-    - apk add git
-    - pip install -e '.[ci-quality]'
-  script:
-    - pylint esp_gpio_tool/**/*.py --exit-zero --load-plugins=pylint_gitlab --output-format=gitlab-codeclimate > gl-codequality.json
-  artifacts:
-    paths:
-      - gl-codequality.json
-    reports:
-      codequality: gl-codequality.json
-    expire_in: 1 week
-  rules:
-    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-  tags:
-    - host_test
-  allow_failure: true
-# ------------------------------------------------------------------------------------------------------
-
-# ------------------------------------------------------------------------------------------------------
 # Build executables
 # ------------------------------------------------------------------------------------------------------
 
