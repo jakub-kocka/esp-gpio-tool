@@ -8,7 +8,7 @@ class Logger:
     def __new__(cls) -> 'Logger':
         """Singleton class to log messages"""
         if not hasattr(cls, 'instance'):
-            cls.instance = super(Logger, cls).__new__(cls)
+            cls.instance = super().__new__(cls)
         return cls.instance
 
     def __init__(self) -> None:

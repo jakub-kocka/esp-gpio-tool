@@ -9,7 +9,7 @@ from itertools import chain
 import yaml
 
 from esp_gpio_tool_cli.logger import Logger
-from esp_gpio_tool_cli.peripheral import *  # noqa: F403; pylint: disable=wildcard-import, unused-wildcard-import
+from esp_gpio_tool_cli.peripheral import *  # noqa: F403
 from esp_gpio_tool_cli.peripheral import BasePeripheral
 from esp_gpio_tool_cli.pin import Pin
 
@@ -22,7 +22,7 @@ logger = Logger()
 def load_config(target: str) -> dict[str, dict]:
     """Load config from yaml file"""
     target = os.path.join(CONFIG_DIR, f'{target}.yaml')
-    with open(target, 'r', encoding='UTF-8') as stream:
+    with open(target, encoding='UTF-8') as stream:
         try:
             return yaml.safe_load(stream)  # type: ignore
         except yaml.YAMLError as exc:
@@ -79,7 +79,7 @@ class ESP:
     def reassignable_peripherals_regex(self) -> str:
         """Return regex for common prefixes of peripherals that can be reassigned"""
         prefix_list = [peripheral.common_prefix for peripheral in self.peripherals if peripheral.reassignable]
-        return rf"({'|'.join(prefix_list)})"
+        return rf'({"|".join(prefix_list)})'
 
     def _str_to_class(self, name: str) -> type[BasePeripheral]:
         """Convert name to class; defaults to `BasePeripheral` if class not found"""

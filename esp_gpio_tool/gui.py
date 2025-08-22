@@ -9,8 +9,8 @@ import yaml
 
 try:
     import tkinter as tk
-    from tkinter import messagebox
     from tkinter import PhotoImage
+    from tkinter import messagebox
     from tkinter import ttk
 except ImportError as exc:
     raise SystemExit('Please install Python Tkinter, for more information see the documentation.') from exc
@@ -91,7 +91,7 @@ class GUI:
 
             top.title('Restore default')
             top.resizable(False, False)
-            top.geometry(f'+{int(gui_width-top_width/2)}+{int(gui_height-top_height/2)}')
+            top.geometry(f'+{int(gui_width - top_width / 2)}+{int(gui_height - top_height / 2)}')
             top.tk.call('wm', 'iconphoto', top, PhotoImage(file=resource_path('espressif-logo.png')))
 
             top.mainloop()
@@ -195,7 +195,7 @@ class GUI:
             - disables/enables GPIO for specific mode
             """
             # remove "Data width: " from mode label if present (e.g. in SDIO)
-            mode = event.widget.get().split(': ')
+            mode = event.widget.get().split(': ')  # type: ignore
             mode = mode[1] if len(mode) == 2 else mode[0]
 
             peripheral.set_mode(sub_peripheral, mode)
