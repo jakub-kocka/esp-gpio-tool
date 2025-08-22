@@ -22,7 +22,7 @@
 
     [project.optional-dependencies]
         dev = [
-            "commitizen~=3.10.1",
+            "czespressif",
             "pandas[excel]~=2.2.2",
         ]
         test = ["pytest-cov~=4.1.0", "pytest~=7.4.0"]
@@ -58,6 +58,7 @@
 
 [tool.commitizen]
     version                    = "0.1.0"
+    name = "czespressif"
     major_version_zero         = true
     update_changelog_on_bump   = true
     tag_format                 = "v$version"
@@ -69,21 +70,6 @@
         "esp_gpio_tool_cli/__init__.py:__version__"
     ]
 
-    change_type_order = [
-        "BREAKING CHANGE",
-        "New Features",
-        "Bug Fixes",
-        "Code Refactoring",
-        "Performance Improvements",
-        "Documentation updates"
-    ]
-
-[tool.commitizen.change_type_map]
-feat     = "New Features"
-fix      = "Bug Fixes"
-refactor = "Code Refactoring"
-perf     = "Performance Improvements"
-docs     = "Documentation updates"
 
 [tool.setuptools.dynamic]
 version = {attr = "esp_gpio_tool_cli.__version__"}
