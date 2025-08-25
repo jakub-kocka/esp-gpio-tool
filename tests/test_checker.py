@@ -236,7 +236,7 @@ def test_sdmmc() -> None:
     out = run(config)
     assert 'Error' not in ''.join(out)
     for idx, pin in enumerate(['CCMD_1', 'CDATA_10', 'CDATA_11', 'CDATA_12', 'CDATA_13']):
-        assert f'Note: Function SDHOST_{pin} requires 10k pull-up resistor on pin GPIO{idx+1}.' in out
+        assert f'Note: Function SDHOST_{pin} requires 10k pull-up resistor on pin GPIO{idx + 1}.' in out
 
 
 def test_reuse_debug_pins() -> None:

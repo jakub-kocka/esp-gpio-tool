@@ -518,7 +518,7 @@ class MCPWM(BasePeripheral):
         self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
     ) -> None:
         super().__init__(count, assigned_pins, universal_pins, **kwargs)
-        self._universal_pins = self.unwrap_channels(kwargs.get('channels', None), self._universal_pins)
+        self._universal_pins = self.unwrap_channels(kwargs.get('channels', 0), self._universal_pins)
         self.optional_pins = self.universal_pins  # all pins are optional
 
     def unwrap_channels(self, channels: int, pins: dict[str, list[str]]) -> dict[str, list[str]]:
@@ -543,7 +543,7 @@ class PCNT(BasePeripheral):
         self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
     ) -> None:
         super().__init__(count, assigned_pins, universal_pins, **kwargs)
-        self._universal_pins = self.unwrap_channels(kwargs.get('channels', None), self._universal_pins)
+        self._universal_pins = self.unwrap_channels(kwargs.get('channels', 0), self._universal_pins)
         self._used_pins: list[str] = []
 
     def unwrap_channels(self, channels: int, pins: dict[str, list[str]]) -> dict[str, list[str]]:
@@ -607,7 +607,7 @@ class EMAC(BasePeripheral):
         elif self.mode['0'] == 'MII':
             # additional pins needed for MII
             pins.extend(['RX_CLK', 'TXD2', 'TXD3', 'RX_ER', 'RXD2', 'RXD3', 'TX_ER'])
-        # sort pins so similar pins are after each other; maily for additional TX and RX in MII
+        # sort pins so similar pins are after each other; mainly for additional TX and RX in MII
         pins.sort()
         # add prefixes to the pins, for better naming in the config
         return {'0': [f'EMAC_{i}' for i in pins]}
@@ -775,7 +775,7 @@ class PARLIO(BasePeripheral):
         for instance in self.instances:
             width: int = int(self.mode.get(instance, 0)) - 1
             if width > 10:  # change regex for double digit data channels
-                regex = re.compile(rf'PARL_(RX|TX)_(CLK.*|DATA([0-9]|1[0-{width-10}]))$')
+                regex = re.compile(rf'PARL_(RX|TX)_(CLK.*|DATA([0-9]|1[0-{width - 10}]))$')
             else:
                 regex = re.compile(rf'PARL_(RX|TX)_(CLK.*|DATA[0-{width}])$')
             pins[instance] = [pin for pin in self._universal_pins[instance] if regex.match(pin)]

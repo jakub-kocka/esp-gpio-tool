@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+# SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
 # SPDX-License-Identifier: Apache-2.0
 import click
 
@@ -21,7 +21,7 @@ def main(no_unicode: bool = False) -> None:
 @click.argument('filename', type=click.Path(exists=True), required=True)
 def check(filename: str) -> None:
     """Check the pin configuration from the given yaml file"""
-    with open(filename, 'r', encoding='UTF-8') as file:
+    with open(filename, encoding='UTF-8') as file:
         user_input = file.read()
     output = run_check(user_input)
     for line in output:
@@ -36,7 +36,7 @@ def list_pins(chip: str) -> None:
     """Print the available pins for the given chip"""
     esp = ESP(chip)
     print(f'chip: {esp.name}')
-    print(f"SoCs: {', '.join([str(soc) for soc in esp.soc_list])}")
+    print(f'SoCs: {", ".join([str(soc) for soc in esp.soc_list])}')
     print('IO:\n  Pins: INPUT, OUTPUT')
     for peripheral in esp.peripherals:
         print(f'{peripheral.name}:')
@@ -47,7 +47,7 @@ def list_pins(chip: str) -> None:
         pins = []
         for instance in peripheral.instances:
             pins.extend(peripheral.all_pins[instance])
-        print(f"  Pins: {', '.join(pins)}")
+        print(f'  Pins: {", ".join(pins)}')
 
 
 if __name__ == '__main__':
