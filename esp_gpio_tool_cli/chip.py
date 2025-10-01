@@ -136,6 +136,10 @@ class ESP:
                 return peripheral
         raise ValueError(f'Function {function} not found in peripherals for {self.name}.')
 
+    def get_gpio_list(self) -> list[int]:
+        """Return list of GPIOs for the chip as list of integers"""
+        return list(self.gpios.keys())
+
     def list_pins_by_function(self, function: str) -> list[Pin]:
         """Return list of pins that can be assigned to the function. Mainly used for filtering 'assigned_pins'"""
         pins = []

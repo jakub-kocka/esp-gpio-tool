@@ -26,9 +26,14 @@ It offers GPIO-related tools.
 - [Getting Started](#getting-started)
   - [Usage](#usage)
 - [Documentation](#documentation)
+  - [Get List of Functions](#get-list-of-functions)
   - [GPIO Assignment Checker](#gpio-assignment-checker)
     - [GUI](#gui)
-    - [Input file for CLI](#input-file)
+    - [Input File](#input-file)
+      - [Peripheral Mode Selection](#peripheral-mode-selection)
+- [API Usage](#api-usage)
+  - [Get List of GPIOs and Functions](#get-list-of-gpios-and-functions)
+  - [Run Check](#run-check)
 - [CI/CD Overview](#cicd-overview)
   - [GitLab CI/CD](#gitlab-cicd)
   - [GitHub Actions](#github-actions)
@@ -42,17 +47,25 @@ It offers GPIO-related tools.
 
 ### Usage
 
-1. Install the Python package
+Clone the repository and install the Python package
 
-   ```sh
-   pip install esp-gpio-tool
-   ```
+  ```sh
+  pip install .
+  ```
 
 ---
 
 ## Documentation
 
 ESP GPIO tool currently supports checking of pin assignment for ESP32 using CLI.
+
+### Get List of Functions
+
+Getting a list of all possible functions might help with writing the function names correctly. Since there are some differences in names across the chips and also between datasheets and ESP-IDF. The following command will provide all functions available for the selected chip, split by peripherals.
+
+```sh
+espins_cli list-pins esp32
+```
 
 ### GPIO Assignment Checker
 
@@ -146,6 +159,58 @@ peripheral:
 13: HSPID
 14: HSPICLK
 15: HSPICS0
+```
+
+## API Usage
+
+This is a high level look at the public API, meaning this section will focus more on providing examples for common functionality. For more details on all available methods and properties, please refer to docstrings in the code itself.
+
+Please note that only functions listed below are part of the public API and all other functions are subject to change with any release.
+
+### Get List of GPIOs and Functions
+
+```py
+# Get list of supported chips
+from esp_gpio_tool_cli.chip import SUPPORTED_CHIPS
+print(SUPPORTED_CHIPS) # This includes a list of names of chips without dash (e.g. esp32s3)
+
+from esp_gpio_tool_cli.chip import ESP
+# Create ESP class
+esp = ESP("esp32")
+# Optionally set MPN of chip - some have missing pins or even some extra were added between revisions
+esp.set_soc("ESP32-PICO-D4")
+# To get all possible MPN run
+print(esp.soc_list)
+
+# This will return dictionary of `Pin` classes with GPIO number as key.
+print(esp.gpios)
+
+# Get list of all GPIO pins
+gpio_list = esp.get_gpio_list()
+# To get list with power-domain, unwrap the dict of GPIO pins, e.g. "GPIO1 - VDD3P3_RTC"
+gpio_list = [str(g) for g in esp.gpios.values()]
+
+# Get list of peripherals
+print(esp.peripherals)
+# Get all pins for e.g. ADC (the key here is class name in peripheral.py)
+print(esp.get_peripheral("ADC").all_pins)
+```
+
+### Run Check
+
+You can either run checker on already existing YAML filename or pass config as dictionary. For more details how to create a config please refer to [Input File](#input-file) section.
+
+```py
+from esp_gpio_tool_cli.checker import run_check
+
+config = {
+  "chip": "esp32",
+  0: "TOUCH1",
+  3: ["LEDC_SIG_OUT0", "LEDC_SIG_OUT1", "RMT_SIG_IN0"],
+}
+out = run_check(config)
+# Output is provided as a list of messages
+print(out)
 ```
 
 ---
