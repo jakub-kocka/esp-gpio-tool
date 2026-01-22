@@ -842,6 +842,9 @@ class PARLIO(BasePeripheral):
         self.mode = {str(i): 1 for i in self.instances}
         self.mode_label = 'Data width'
         self._universal_pins = self._unwrap_data_pins()
+        # All TX and RX pins are initially optional - they become required based on usage
+        # This allows TX-only, RX-only, or duplex modes
+        self.optional_pins = self.all_pins
 
     @property
     def universal_pins(self) -> dict[str, list[str]]:
@@ -872,6 +875,42 @@ class PARLIO(BasePeripheral):
     def set_mode(self, instance: str, mode: str) -> None:
         super().set_mode(instance, mode)
         self.mode[instance] = int(mode)
+
+    def check_required_pins(self, assigned_functions: list[str]) -> None:
+        """Check required pins based on TX/RX usage"""
+        super().check_required_pins(assigned_functions)
+        for instance in self.used_instances:
+            # Check which direction is being used
+            has_tx = any(f.startswith('PARL_TX_') for f in assigned_functions)
+            has_rx = any(f.startswith('PARL_RX_') for f in assigned_functions)
+
+            if not has_tx and not has_rx:
+                logger.error(
+                    'PARLIO requires at least TX or RX pins to be assigned. Please assign at least one of them.'
+                )
+                continue
+
+            # Check TX requirements if TX is used
+            if has_tx:
+                tx_data_pins = [f for f in assigned_functions if f.startswith('PARL_TX_DATA')]
+                if not tx_data_pins:
+                    logger.error('At least one PARL_TX_DATA pin is required when using TX mode for PARLIO.')
+                if len(tx_data_pins) != self.mode[instance]:
+                    logger.error(
+                        f'Number of PARL_TX_DATA ({len(tx_data_pins)}) pins must match '
+                        f'the data width ({self.mode[instance]}) for PARLIO.'
+                    )
+
+            # Check RX requirements if RX is used
+            if has_rx:
+                rx_data_pins = [f for f in assigned_functions if f.startswith('PARL_RX_DATA')]
+                if not rx_data_pins:
+                    logger.error('At least one PARL_RX_DATA pin is required when using RX mode for PARLIO.')
+                if len(rx_data_pins) != self.mode[instance]:
+                    logger.error(
+                        f'Number of PARL_RX_DATA ({len(rx_data_pins)}) pins must match '
+                        f'the data width ({self.mode[instance]}) for PARLIO.'
+                    )
 
 
 class ANACOMP(BasePeripheral):

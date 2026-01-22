@@ -334,3 +334,76 @@ def test_cam_16bit_slave_rx() -> None:
         config += f'\n    {20 + i}: CAM_DATA{i}'
     result = run(config)
     assert 'Error' not in '\n'.join(result)
+
+
+@pytest.mark.parametrize('data_width', ['1', '2', '4', '8', '16'])
+def test_parlio_data_width(data_width: str) -> None:
+    """Test PARLIO with different data widths (TX-only mode)"""
+    config = f"""
+    chip: esp32p4
+    peripheral:
+        PARLIO:
+            0: {data_width}
+    16: PARL_TX_CLK_IN
+    17: PARL_TX_CLK_OUT
+    """
+    # Add data pins based on width (pins are DATA0, DATA1, etc.)
+    for i in range(int(data_width)):
+        config += f'\n    {18 + i}: PARL_TX_DATA{i}'
+    result = run(config)
+    assert 'Error' not in '\n'.join(result)
+
+
+def test_parlio_rx_only() -> None:
+    """Test PARLIO in RX-only mode"""
+    config = """
+    chip: esp32p4
+    peripheral:
+        PARLIO:
+            0: 4
+    16: PARL_RX_CLK_IN
+    17: PARL_RX_CLK_OUT
+    18: PARL_RX_DATA0
+    19: PARL_RX_DATA1
+    20: PARL_RX_DATA2
+    21: PARL_RX_DATA3
+    """
+    result = run(config)
+    assert 'Error' not in '\n'.join(result)
+
+
+def test_parlio_duplex() -> None:
+    """Test PARLIO in duplex mode (both TX and RX)"""
+    config = """
+    chip: esp32p4
+    peripheral:
+        PARLIO:
+            0: 4
+    16: PARL_TX_CLK_IN
+    17: PARL_TX_CLK_OUT
+    18: PARL_TX_DATA0
+    19: PARL_TX_DATA1
+    20: PARL_TX_DATA2
+    21: PARL_TX_DATA3
+    22: PARL_RX_CLK_IN
+    23: PARL_RX_CLK_OUT
+    24: PARL_RX_DATA0
+    25: PARL_RX_DATA1
+    26: PARL_RX_DATA2
+    27: PARL_RX_DATA3
+    """
+    result = run(config)
+    assert 'Error' not in '\n'.join(result)
+
+
+def test_parlio_no_direction() -> None:
+    """Test PARLIO error when no TX or RX pins are assigned"""
+    config = """
+    chip: esp32p4
+    peripheral:
+        PARLIO:
+            0: 4
+    16: PARL_TX_CLK_OUT
+    """
+    out = '\n'.join(run(config))
+    assert 'Error: At least one PARL_TX_DATA pin is required when using TX mode for PARLIO.' in out
