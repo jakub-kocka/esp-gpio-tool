@@ -218,7 +218,7 @@ class SPI(BasePeripheral):
             self.supported_modes = modes
         self.mode = {i: 'Single SPI' for i in self.instances}
         self.reassignable = True
-        opt_filter = re.compile(r'.?SPI(CS\d|DQS)').match
+        opt_filter = re.compile(r'.?SPI\d?(CS\d|DQS)').match
         self.optional_pins = {
             key: list(filter(opt_filter, pins + self._universal_pins.get(key, [])))
             for key, pins in self._assigned_pins.items()
@@ -803,6 +803,32 @@ class LCDCAM(BasePeripheral):
             elif '16 bit' in str(self.mode[instance]):
                 pins[instance] = self._universal_pins[instance]
         return pins
+
+    def set_mode(self, instance: str, mode: str) -> None:
+        super().set_mode(instance, mode)
+        if instance == 'CAM':
+            if 'Slave' in mode:
+                self.optional_pins[instance] = ['CAM_CLK']
+            else:
+                self.optional_pins[instance] = []
+
+    def check_required_pins(self, assigned_functions: list[str]) -> None:
+        super().check_required_pins(assigned_functions)
+        for instance in self.used_instances:
+            if instance == 'CAM':
+                if 'CAM_CLK' in assigned_functions and 'Slave' in str(self.mode[instance]):
+                    logger.warn('CAM_CLK is not used in Slave mode for CAM.')
+            elif instance == 'LCD':
+                # TODO: Consider printing warnings for using pins for mixed modes
+                if any(f in assigned_functions for f in ['LCD_H_SYNC', 'LCD_V_SYNC', 'LCD_H_ENABLE']):
+                    if not all(f in assigned_functions for f in ['LCD_H_SYNC', 'LCD_V_SYNC', 'LCD_H_ENABLE']):
+                        logger.error(
+                            'LCD_H_SYNC, LCD_V_SYNC, and LCD_H_ENABLE are required '
+                            'when using parallel RGB mode for LCD.'
+                        )
+                elif any(f in assigned_functions for f in ['LCD_CD', 'LCD_CS']):
+                    if not all(f in assigned_functions for f in ['LCD_CD', 'LCD_CS']):
+                        logger.error('LCD_CD and LCD_CS are required when using 8080 / MOTO6800 mode for LCD.')
 
 
 class PARLIO(BasePeripheral):

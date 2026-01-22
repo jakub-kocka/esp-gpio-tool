@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+# SPDX-FileCopyrightText: 2024-2026 Espressif Systems (Shanghai) CO LTD
 # SPDX-License-Identifier: Apache-2.0
 import pytest
 
@@ -294,3 +294,43 @@ def test_spi_no_q_d() -> None:
     """
     out = '\n'.join(run(config))
     assert 'Error: HSPIQ or HSPID is required for Single SPI mode.' in out
+
+
+def test_lcd_24bit_master_tx() -> None:
+    """Test LCD with 24-bit Master TX Mode"""
+    config = """
+    chip: esp32p4
+    peripheral:
+        LCDCAM:
+            LCD: 24 bit - Master TX Mode
+    16: LCD_PCLK
+    17: LCD_CD
+    18: LCD_CS
+    19: LCD_VSYNC
+    20: LCD_HSYNC
+    21: LCD_DE
+    """
+    # Add 24 data pins (LCD has 24 channels)
+    for i in range(24):
+        config += f'\n    {22 + i}: LCD_DATA{i}'
+    result = run(config)
+    assert 'Error' not in '\n'.join(result)
+
+
+def test_cam_16bit_slave_rx() -> None:
+    """Test CAM with 16-bit Slave RX Mode"""
+    config = """
+    chip: esp32p4
+    peripheral:
+        LCDCAM:
+            CAM: 16 bit - Slave RX Mode
+    16: CAM_PCLK
+    17: CAM_VSYNC
+    18: CAM_HSYNC
+    19: CAM_DE
+    """
+    # Add 16 data pins (CAM has 16 channels)
+    for i in range(16):
+        config += f'\n    {20 + i}: CAM_DATA{i}'
+    result = run(config)
+    assert 'Error' not in '\n'.join(result)
