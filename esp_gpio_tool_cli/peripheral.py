@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
+# SPDX-FileCopyrightText: 2024-2026 Espressif Systems (Shanghai) CO LTD
 # SPDX-License-Identifier: Apache-2.0
 import re
 from typing import Any
@@ -146,6 +146,15 @@ class BasePeripheral:
                 f'Supported modes: {self.supported_modes[instance]}'
             )
         self.mode[instance] = mode
+
+
+class LowPowerBase(BasePeripheral):
+    """Base class for low power peripherals"""
+
+    def check_pin_function(self, instance: str, function: str, pin: Pin) -> None:
+        if not (pin.lp or pin.rtc):
+            raise ValueError(f'Pin {pin.pin} is not a low power pin.')
+        super().check_pin_function(instance, function, pin)
 
 
 class ADC(BasePeripheral):
@@ -303,6 +312,17 @@ class SPI(BasePeripheral):
                     logger.note(f'{instance}D is required for Full Duplex Single SPI mode.')
 
 
+class LPSPI(LowPowerBase):
+    """Low power SPI peripheral"""
+
+    name = 'Low power SPI'
+
+    def __init__(
+        self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
+    ) -> None:
+        super().__init__(count, assigned_pins, universal_pins, common_prefix='LP_SPI')
+
+
 class I2C(BasePeripheral):
     def __init__(
         self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
@@ -310,13 +330,22 @@ class I2C(BasePeripheral):
         super().__init__(count, assigned_pins, universal_pins)
 
 
-class LPI2C(BasePeripheral):
+class LPI2C(LowPowerBase):
     """Low Power I2C peripheral"""
+
+    name = 'Low power I2C'
 
     def __init__(
         self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
     ) -> None:
         super().__init__(count, assigned_pins, universal_pins, common_prefix='LP_I2C')
+
+
+class I3C(BasePeripheral):
+    def __init__(
+        self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
+    ) -> None:
+        super().__init__(count, assigned_pins, universal_pins)
 
 
 class I2S(BasePeripheral):
@@ -329,6 +358,17 @@ class I2S(BasePeripheral):
         if function.endswith('_CLK') and function in self.assigned_pins[instance]:
             if not any(fun.startswith('CLK_OUT') for fun in pin.functions):
                 raise ValueError(f'Pin {pin.pin} does not support CLK_OUT, which is required for {function}.')
+
+
+class LPI2S(LowPowerBase):
+    """Low power I2S peripheral"""
+
+    name = 'Low power I2S'
+
+    def __init__(
+        self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
+    ) -> None:
+        super().__init__(count, assigned_pins, universal_pins, common_prefix='LP_I2S')
 
 
 class TOUCH(BasePeripheral):
@@ -381,17 +421,21 @@ class UART(BasePeripheral):
                 )
 
 
-class LPUART(BasePeripheral):
+class LPUART(LowPowerBase):
     """Low power UART peripheral"""
+
+    name = 'Low power UART'
 
     def __init__(
         self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
     ) -> None:
         super().__init__(count, assigned_pins, universal_pins, common_prefix='LP_UART')
-        self.optional_pins = self.unwrap_pins(assigned_pins)
+        self.optional_pins = self.all_pins  # all pins are optional, as we allow one way UART connections
 
 
 class SDIO(BasePeripheral):
+    """SDIO slave peripheral"""
+
     def __init__(
         self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
     ) -> None:
@@ -430,12 +474,12 @@ class SDIO(BasePeripheral):
 
 
 class SDMMC(BasePeripheral):
-    """SD/MMC card peripheral"""
+    """SD/SDIO/MMC host controller peripheral"""
 
     def __init__(
         self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
     ) -> None:
-        super().__init__(count, assigned_pins, universal_pins, start_cnt=1, common_prefix='SDHOST', **kwargs)
+        super().__init__(count, assigned_pins, universal_pins, start_cnt=1, common_prefix=r'SDHOST_.*_\d', **kwargs)
         self.supported_modes = kwargs.get('data_width', {str(i): [1] for i in self.instances})
         self.mode = {str(i): 1 for i in self.instances}
         self.mode_label = 'Data width'
@@ -664,7 +708,9 @@ class XTAL32K(BasePeripheral):
 
 
 class USBOTG(BasePeripheral):
-    """USB OTG peripheral"""
+    """USB OTG Full-Speed peripheral"""
+
+    name = 'USB OTG Full-Speed'
 
     def __init__(
         self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
@@ -672,10 +718,13 @@ class USBOTG(BasePeripheral):
         super().__init__(count, assigned_pins, universal_pins, common_prefix=r'USB_OTG', **kwargs)
         required_values = ['USB_OTG_D-', 'USB_OTG_D+']
         self.optional_pins = {'0': [val for val in self.assigned_pins if val not in required_values]}
+        # TODO: On esp32p4, this can be exchanged with USBSERIALJTAG peripheral, but efuse has to be burn
 
 
 class USBSERIALJTAG(BasePeripheral):
     """USB Serial/JTAG peripheral"""
+
+    name = 'USB Serial/JTAG'
 
     def __init__(
         self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
@@ -725,20 +774,20 @@ class LCDCAM(BasePeripheral):
                             output[str(instance)].append(pin)
         return output
 
-    def unwrap_channels(self, channels: int, pins: dict[str, list[str]]) -> dict[str, list[str]]:
+    def unwrap_channels(self, channels: dict[str, int] | int, pins: dict[str, list[str]]) -> dict[str, list[str]]:
         """Convert wildcard channels to actual channels, e.g.
         {subname}_DATA{{channel}} -> {LCD: [LCD_DATA0, LCD_DATA1... ]}
         """
+        if isinstance(channels, int):
+            channels = {i: channels for i in self.instances}
         for instance, instance_val in self.universal_pins.items():
             for pin in instance_val:
                 if '{channel}' not in pin:
                     continue
                 # replace wildcard with all possible channels
                 self._universal_pins[instance].remove(pin)
-                self._universal_pins[instance].extend([pin.format(channel=str(i)) for i in range(channels)])
+                self._universal_pins[instance].extend([pin.format(channel=str(i)) for i in range(channels[instance])])
         return pins
-
-    # TODO Pin OUT/IN based on the operation mode
 
     @property
     def universal_pins(self) -> dict[str, list[str]]:
@@ -799,11 +848,12 @@ class PARLIO(BasePeripheral):
         self.mode[instance] = int(mode)
 
 
-class ZCD(BasePeripheral):
-    """PAD voltage comparator (Zero Crossing Detector)"""
+class ANACOMP(BasePeripheral):
+    """Analog PAD Voltage Comparator"""
 
     def __init__(
         self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
     ) -> None:
-        super().__init__(count, assigned_pins, universal_pins, common_prefix='ZCD', **kwargs)
-        self.optional_pins = {'0': ['ZCD0']}  # ZCD0 is optional reference (internal one can be used to replace)
+        super().__init__(count, assigned_pins, universal_pins, common_prefix=r'ANA_COMP\d', **kwargs)
+        # ANA_COMPx_PAD0 is optional reference (internal one can be used to replace)
+        self.optional_pins = {i: [f'ANA_COMP{i}_PAD0'] for i in self.instances}

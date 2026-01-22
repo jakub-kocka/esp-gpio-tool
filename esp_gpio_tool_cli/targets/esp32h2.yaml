@@ -49,9 +49,9 @@ peripheral:
     count: 1
     data_width: [1, 2, 4, 8]
     universal_pins: ['PARL_RX_DATA{data_width}', 'PARL_TX_DATA{data_width}', PARL_RX_CLK_IN, PARL_TX_CLK_IN, PARL_TX_CLK_OUT]
-  ZCD:  # Analog PAD Voltage Comparator
+  ANACOMP:  # Analog PAD Voltage Comparator / Zero Crossing Detector
     count: 1
-    assigned_pins: [ZCD0, ZCD1]
+    assigned_pins: [ANA_COMP0_PAD0, ANA_COMP0_PAD1]
 
 gpio:
   0: {power_domain: VDDPST1, functions: [FSPIQ]}
@@ -62,8 +62,8 @@ gpio:
   5: {power_domain: VDDPST1, functions: [ADC1_CH4, MTDI, FSPID]}
   8: {power_domain: VDDPST1, rtc: true, functions: [], strapping: Has to be pulled-up for Download Mode}
   9: {power_domain: VDDPST1, rtc: true, functions: [], strapping: High for SPI Boot; Low for Download Mode, at_reset: PUP}
-  10: {power_domain: VDDPST1, rtc: true, functions: [ZCD0]}
-  11: {power_domain: VDDPST1, rtc: true, functions: [ZCD1]}
+  10: {power_domain: VDDPST1, rtc: true, functions: [ANA_COMP0_PAD0]}  # ZCD0
+  11: {power_domain: VDDPST1, rtc: true, functions: [ANA_COMP0_PAD1]}  # ZCD1
   12: {power_domain: VDDPST1/VBAT, rtc: true, functions: []}
   13: {power_domain: VDDPST1/VBAT, rtc: true, functions: [XTAL_32K_P]}
   14: {power_domain: VDDPST1/VBAT, rtc: true, functions: [XTAL_32K_N]}
