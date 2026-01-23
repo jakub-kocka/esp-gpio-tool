@@ -640,17 +640,28 @@ class EMAC(BasePeripheral):
     ) -> None:
         super().__init__(count, assigned_pins, universal_pins, **kwargs)
         self.supported_modes = {'0': kwargs.get('modes', [])}
-        self.mode = {'0': 'RMII external CLK'}
+        self.set_mode('0', 'RMII external CLK')
 
     @property
     def assigned_pins(self) -> dict[str, list[str]]:
         # shared pins for RMII and MII
-        pins = ['TX_CLK', 'TX_EN', 'TXD0', 'TXD1', 'RX_DV', 'RXD0', 'RXD1']
+        pins = ['TX_EN', 'TXD0', 'TXD1', 'RX_DV', 'RXD0', 'RXD1']
         if self.mode['0'] == 'RMII internal CLK':
-            pins.append('CLK_OUT')
+            if 'EMAC_CLK_OUT' in self._assigned_pins['0']:  # esp32
+                pins.append('CLK_OUT')
+            else:  # esp32p4; REF_50M_CLK is output and has to be looped back to RMII_CLK
+                pins.extend(['REF_50M_CLK', 'RMII_CLK'])
+        elif self.mode['0'] == 'RMII external CLK':
+            # input clock pin
+            if 'EMAC_TX_CLK' in self._assigned_pins['0']:  # esp32
+                pins.append('TX_CLK')
+            else:  # esp32p4
+                pins.append('RMII_CLK')
         elif self.mode['0'] == 'MII':
-            # additional pins needed for MII
-            pins.extend(['RX_CLK', 'TXD2', 'TXD3', 'RX_ER', 'RXD2', 'RXD3', 'TX_ER'])
+            # MII is still not supported by ESP-IDF, but we allow it in case someone wants to implement a driver
+            # additional pins needed for MII; on esp32 MII pins are using MUX, but on esp32p4 they use matrix
+            if 'EMAC_RXD2' in self._assigned_pins['0']:
+                pins.extend(['TX_CLK', 'RX_CLK', 'TXD2', 'TXD3', 'RX_ER', 'RXD2', 'RXD3', 'TX_ER'])
         # sort pins so similar pins are after each other; mainly for additional TX and RX in MII
         pins.sort()
         # add prefixes to the pins, for better naming in the config
@@ -658,24 +669,39 @@ class EMAC(BasePeripheral):
 
     @property
     def universal_pins(self) -> dict[str, list[str]]:
-        pins = ['EMAC_MDC', 'EMAC_MDI', 'EMAC_MDO', 'EMAC_CRS']
+        pins = ['MDC', 'MDIO']
         if self.mode['0'] == 'MII':
-            pins.append('EMAC_COL')
-        return {'0': pins}
+            pins.extend(['COL', 'CRS'])
+            # additional pins needed for MII; on esp32 MII pins are using MUX, but on esp32p4 they use matrix
+            if 'EMAC_RXD2' in self._universal_pins['0']:
+                pins.extend(['RX_CLK', 'TX_CLK', 'TXD2', 'TXD3', 'RX_ER', 'RXD2', 'RXD3', 'TX_ER'])
+        return {'0': [f'EMAC_{i}' for i in pins]}
 
     def check_pin_function(self, instance: str, function: str, pin: Pin) -> None:
         if function == 'EMAC_CLK_OUT':
             # Note: CLK_OUT1 is experimental and on ESP32 is shared with RX_CLK signal on the same GPIO
             if not any(fun in ['CLK_OUT1', 'EMAC_CLK_OUT', 'EMAC_CLK_OUT_180'] for fun in pin.functions):
                 raise ValueError(f'Pin {pin.pin} does not support clock out, which is required for {function}.')
-        elif function in ['EMAC_MDC', 'EMAC_MDO', 'EMAC_CRS', 'EMAC_COL']:
+        if function == 'EMAC_REF_50M_CLK':
+            logger.note(
+                'REF_50M_CLK has to be looped back on PCB to EMAC_RMII_CLK when using RMII with internal clock.'
+            )
+        if function in ['EMAC_MDC', 'EMAC_MDIO', 'EMAC_CRS', 'EMAC_COL']:
             # check if GPIO supports output
             if not pin.is_output:
                 raise ValueError(f'Pin {pin.pin} does not support output, which is required for {function}.')
-        elif function in ['EMAC_MDI']:
-            if not pin.is_output:
+        if function in ['EMAC_MDIO']:
+            if not pin.is_input:
                 raise ValueError(f'Pin {pin.pin} does not support input, which is required for {function}.')
         super().check_pin_function(instance, function, pin)
+
+    def set_mode(self, instance: str, mode: str) -> None:
+        super().set_mode(instance, mode)
+        # TODO: We might make MDC and MDIO optional in the future with warning if not used
+        if mode == 'MII':
+            self.optional_pins = {'0': ['EMAC_TX_ER']}
+        else:
+            self.optional_pins = {'0': []}
 
 
 class CLKOUT(BasePeripheral):

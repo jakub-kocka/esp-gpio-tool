@@ -407,3 +407,321 @@ def test_parlio_no_direction() -> None:
     """
     out = '\n'.join(run(config))
     assert 'Error: At least one PARL_TX_DATA pin is required when using TX mode for PARLIO.' in out
+
+
+def test_esp32_emac_rmii_external_clk() -> None:
+    """Test valid EMAC RMII external CLK mode configuration"""
+    config = """
+    chip: esp32
+    peripheral:
+        EMAC:
+            0: RMII external CLK
+    0: EMAC_TX_CLK
+    21: EMAC_TX_EN
+    19: EMAC_TXD0
+    22: EMAC_TXD1
+    27: EMAC_RX_DV
+    25: EMAC_RXD0
+    26: EMAC_RXD1
+    12: EMAC_MDC
+    15: EMAC_MDIO
+    """
+    result = run(config)
+    assert 'Error' not in '\n'.join(result)
+
+
+def test_esp32_emac_rmii_internal_clk() -> None:
+    """Test valid EMAC RMII internal CLK mode configuration"""
+    config = """
+    chip: esp32
+    peripheral:
+        EMAC:
+            0: RMII internal CLK
+    0: EMAC_TX_CLK
+    21: EMAC_TX_EN
+    19: EMAC_TXD0
+    22: EMAC_TXD1
+    27: EMAC_RX_DV
+    25: EMAC_RXD0
+    26: EMAC_RXD1
+    16: EMAC_CLK_OUT
+    12: EMAC_MDC
+    15: EMAC_MDIO
+    """
+    result = run(config)
+    assert 'Error' not in '\n'.join(result)
+
+
+def test_esp32_emac_mii_valid() -> None:
+    """Test valid EMAC MII mode configuration"""
+    config = """
+    chip: esp32
+    peripheral:
+        EMAC:
+            0: MII
+    0: EMAC_TX_CLK
+    5: EMAC_RX_CLK
+    21: EMAC_TX_EN
+    19: EMAC_TXD0
+    22: EMAC_TXD1
+    14: EMAC_TXD2
+    12: EMAC_TXD3
+    13: EMAC_RX_ER
+    27: EMAC_RX_DV
+    25: EMAC_RXD0
+    26: EMAC_RXD1
+    1: EMAC_RXD2
+    15: EMAC_RXD3
+    4: EMAC_TX_ER
+    16: EMAC_MDC
+    17: EMAC_MDIO
+    18: EMAC_CRS
+    20: EMAC_COL
+    """
+    result = run(config)
+    assert 'Error' not in '\n'.join(result)
+
+
+def test_esp32_emac_mii_with_universal_pins() -> None:
+    """Test EMAC MII mode with universal pins (MDC, MDIO, CRS, COL)"""
+    config = """
+    chip: esp32
+    peripheral:
+        EMAC:
+            0: MII
+    0: EMAC_TX_CLK
+    5: EMAC_RX_CLK
+    21: EMAC_TX_EN
+    19: EMAC_TXD0
+    22: EMAC_TXD1
+    14: EMAC_TXD2
+    12: EMAC_TXD3
+    13: EMAC_RX_ER
+    27: EMAC_RX_DV
+    25: EMAC_RXD0
+    26: EMAC_RXD1
+    1: EMAC_RXD2
+    15: EMAC_RXD3
+    4: EMAC_TX_ER
+    2: EMAC_MDC
+    3: EMAC_MDIO
+    7: EMAC_CRS
+    8: EMAC_COL
+    """
+    result = run(config)
+    assert 'Error' not in '\n'.join(result)
+
+
+def test_esp32_emac_rmii_internal_clk_missing_clk_out() -> None:
+    """Test EMAC RMII internal CLK mode without CLK_OUT pin"""
+    config = """
+    chip: esp32
+    peripheral:
+        EMAC:
+            0: RMII internal CLK
+    0: EMAC_TX_CLK
+    21: EMAC_TX_EN
+    19: EMAC_TXD0
+    22: EMAC_TXD1
+    27: EMAC_RX_DV
+    25: EMAC_RXD0
+    26: EMAC_RXD1
+    2: EMAC_MDC
+    3: EMAC_MDIO
+    """
+    out = '\n'.join(run(config))
+    assert 'Error: Required function EMAC_CLK_OUT from peripheral EMAC is not assigned to any pin.' in out
+
+
+def test_esp32_emac_rmii_wrong_data_pin() -> None:
+    """ESP32 RMII with wrong data pin assignment"""
+    config = """
+    chip: esp32
+    peripheral:
+        EMAC:
+            0: RMII external CLK
+    0: EMAC_TX_CLK
+    21: EMAC_TX_EN
+    4: EMAC_TXD0
+    22: EMAC_TXD1
+    27: EMAC_RX_DV
+    25: EMAC_RXD0
+    26: EMAC_RXD1
+    """
+    out = '\n'.join(run(config))
+    assert 'Error: Pin 4 does not support function EMAC_TXD0.' in out
+
+
+def test_esp32_emac_mii_missing_mdc_mdio() -> None:
+    """ESP32 MII mode missing MDC/MDIO - error case from documentation"""
+    config = """
+    chip: esp32
+    peripheral:
+        EMAC:
+            0: MII
+    0: EMAC_TX_CLK
+    5: EMAC_RX_CLK
+    21: EMAC_TX_EN
+    19: EMAC_TXD0
+    22: EMAC_TXD1
+    14: EMAC_TXD2
+    12: EMAC_TXD3
+    13: EMAC_RX_ER
+    27: EMAC_RX_DV
+    25: EMAC_RXD0
+    26: EMAC_RXD1
+    1: EMAC_RXD2
+    15: EMAC_RXD3
+    4: EMAC_TX_ER
+    """
+    out = '\n'.join(run(config))
+    # MDC and MDIO are required for PHY management
+    assert 'Error: Required function EMAC_MDC from peripheral EMAC is not assigned to any pin.' in out
+    assert 'Error: Required function EMAC_MDIO from peripheral EMAC is not assigned to any pin.' in out
+
+
+def test_esp32p4_emac_rmii_valid() -> None:
+    """Test valid EMAC RMII mode configuration"""
+    config = """
+    chip: esp32p4
+    peripheral:
+        EMAC:
+            0: RMII external CLK
+    28: EMAC_RX_DV
+    29: EMAC_RXD0
+    30: EMAC_RXD1
+    33: EMAC_TX_EN
+    34: EMAC_TXD0
+    35: EMAC_TXD1
+    32: EMAC_RMII_CLK
+    15: EMAC_MDIO
+    14: EMAC_MDC
+    """
+    result = run(config)
+    assert 'Error' not in '\n'.join(result)
+
+
+def test_esp32p4_emac_mii_valid() -> None:
+    """Test valid EMAC MII mode configuration"""
+    config = """
+    chip: esp32p4
+    peripheral:
+        EMAC:
+            0: MII
+    28: EMAC_RX_DV
+    29: EMAC_RXD0
+    30: EMAC_RXD1
+    31: EMAC_RX_ER
+    33: EMAC_TX_EN
+    34: EMAC_TXD0
+    35: EMAC_TXD1
+    36: EMAC_TX_ER
+    32: EMAC_TX_CLK
+    17: EMAC_RX_CLK
+    18: EMAC_TXD2
+    19: EMAC_TXD3
+    20: EMAC_RXD2
+    21: EMAC_RXD3
+    12: EMAC_MDC
+    15: EMAC_MDIO
+    14: EMAC_CRS
+    13: EMAC_COL
+    """
+    result = run(config)
+    assert 'Error' not in '\n'.join(result)
+
+
+def test_esp32p4_emac_rmii_missing_pins() -> None:
+    """Test EMAC RMII mode with missing required pins"""
+    config = """
+    chip: esp32p4
+    peripheral:
+        EMAC:
+            0: RMII external CLK
+    28: EMAC_RX_DV
+    29: EMAC_RXD0
+    33: EMAC_TX_EN
+    """
+    out = '\n'.join(run(config))
+    # Should complain about missing required pins
+    for pin in ['EMAC_MDIO', 'EMAC_MDC', 'EMAC_RMII_CLK', 'EMAC_RXD1', 'EMAC_TXD0', 'EMAC_TXD1']:
+        assert f'Error: Required function {pin} from peripheral EMAC is not assigned to any pin.' in out
+
+
+def test_esp32p4_emac_mii_missing_pins() -> None:
+    """Test EMAC MII mode with missing required pins"""
+    config = """
+    chip: esp32p4
+    peripheral:
+        EMAC:
+            0: MII
+    28: EMAC_RX_DV
+    29: EMAC_RXD0
+    30: EMAC_RXD1
+    33: EMAC_TX_EN
+    34: EMAC_TXD0
+    35: EMAC_TXD1
+    """
+    out = '\n'.join(run(config))
+    # Should complain about missing MII-specific pins
+    for pin in ['EMAC_RX_CLK', 'EMAC_TXD2', 'EMAC_TXD3', 'EMAC_RXD2', 'EMAC_RXD3']:
+        assert f'Error: Required function {pin} from peripheral EMAC is not assigned to any pin.' in out
+
+
+def test_esp32p4_emac_invalid_mode() -> None:
+    """Test EMAC with invalid mode"""
+    config = """
+    chip: esp32p4
+    peripheral:
+        EMAC:
+            0: InvalidMode
+    """
+    out = run(config)
+    assert 'Error: Mode InvalidMode is not supported for EMAC 0.' in ''.join(out)
+
+
+def test_esp32p4_emac_rmii_internal_clk_loopback() -> None:
+    """ESP32-P4 RMII with internal 50 MHz clock and loopback"""
+    config = """
+    chip: esp32p4
+    peripheral:
+        EMAC:
+            0: RMII internal CLK
+    23: EMAC_REF_50M_CLK
+    32: EMAC_RMII_CLK
+    40: EMAC_TX_EN
+    41: EMAC_TXD0
+    42: EMAC_TXD1
+    45: EMAC_RX_DV
+    46: EMAC_RXD0
+    47: EMAC_RXD1
+    48: EMAC_RX_ER
+    16: EMAC_MDC
+    17: EMAC_MDIO
+    """
+    result = '\n'.join(run(config))
+    assert (
+        'Note: REF_50M_CLK has to be looped back on PCB to EMAC_RMII_CLK when using RMII with internal clock.' in result
+    )
+    assert 'Error' not in result
+
+
+def test_esp32p4_emac_rmii_invalid_ref_clk_pin() -> None:
+    """ESP32-P4 RMII with invalid REF_CLK pin"""
+    config = """
+    chip: esp32p4
+    peripheral:
+        EMAC:
+            0: RMII external CLK
+    33: EMAC_RMII_CLK
+    40: EMAC_TX_EN
+    34: EMAC_TXD0
+    35: EMAC_TXD1
+    28: EMAC_RX_DV
+    29: EMAC_RXD0
+    30: EMAC_RXD1
+    31: EMAC_RX_ER
+    """
+    out = '\n'.join(run(config))
+    # EMAC_RMII_CLK can only be on GPIO32, GPIO44, or GPIO50; GPIO33 is not allowed
+    assert 'Error: Pin 33 does not support function EMAC_RMII_CLK.' in out

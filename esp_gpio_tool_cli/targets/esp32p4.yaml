@@ -64,7 +64,7 @@ peripheral:
     count: 1
     modes: [RMII internal CLK, RMII external CLK, MII]
     assigned_pins: [EMAC_RX_DV, EMAC_RXD0, EMAC_RXD1, EMAC_RX_ER, EMAC_TX_EN, EMAC_TXD0, EMAC_TXD1, EMAC_TX_ER, EMAC_REF_50M_CLK, EMAC_RMII_CLK]
-    universal_pins: [EMAC_RXD2, EMAC_RXD3, EMAC_TXD2, EMAC_TXD3, EMAC_RX_CLK, EMAC_MDC, EMAC_MDIO, EMAC_CRS, EMAC_COL]
+    universal_pins: [EMAC_RXD2, EMAC_RXD3, EMAC_TXD2, EMAC_TXD3, EMAC_RX_CLK, EMAC_TX_CLK, EMAC_MDC, EMAC_MDIO, EMAC_CRS, EMAC_COL]
   TWAI:
     count: 3
     universal_pins: ['TWAI{count}_RX', 'TWAI{count}_TX', 'TWAI{count}_BUS_OFF_ON', 'TWAI{count}_CLKOUT', 'TWAI{count}_STANDBY']
