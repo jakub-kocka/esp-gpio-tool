@@ -7,8 +7,8 @@
 # Usage: run this script with the "assemble" argument and provide path to the excel file
 import re
 
-import click
 import pandas as pd
+import rich_click as click
 
 
 def _functions_builder(file: pd.DataFrame) -> list[list[str]]:

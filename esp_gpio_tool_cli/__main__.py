@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
 # SPDX-License-Identifier: Apache-2.0
-import click
+import rich_click as click
 
 from esp_gpio_tool_cli import __version__
 from esp_gpio_tool_cli.checker import run_check
