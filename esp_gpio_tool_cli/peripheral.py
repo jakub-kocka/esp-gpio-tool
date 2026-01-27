@@ -719,7 +719,7 @@ class TWAI(BasePeripheral):
         self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
     ) -> None:
         super().__init__(count, assigned_pins, universal_pins, **kwargs)
-        self.optional_pins = {i: ['twai_bus_off_on', 'twai_clkout'] for i in self.instances}
+        self.optional_pins = {i: ['TWAI_BUS_OFF_ON', 'TWAI_CLKOUT'] for i in self.instances}
 
 
 class XTAL32K(BasePeripheral):
@@ -743,7 +743,7 @@ class USBOTG(BasePeripheral):
     ) -> None:
         super().__init__(count, assigned_pins, universal_pins, common_prefix=r'USB_OTG', **kwargs)
         required_values = ['USB_OTG_D-', 'USB_OTG_D+']
-        self.optional_pins = {'0': [val for val in self.assigned_pins if val not in required_values]}
+        self.optional_pins = {'0': [val for val in self.assigned_pins.get('0') if val not in required_values]}  # type: ignore
         # TODO: On esp32p4, this can be exchanged with USBSERIALJTAG peripheral, but efuse has to be burn
 
 
@@ -757,7 +757,7 @@ class USBSERIALJTAG(BasePeripheral):
     ) -> None:
         super().__init__(count, assigned_pins, universal_pins, common_prefix=r'USB(?!_OTG).', **kwargs)
         required_values = ['USB_D-', 'USB_D+']
-        self.optional_pins = {'0': [val for val in self.assigned_pins if val not in required_values]}
+        self.optional_pins = {'0': [val for val in self.assigned_pins.get('0') if val not in required_values]}  # type: ignore
 
 
 class LCDCAM(BasePeripheral):
