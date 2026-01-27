@@ -227,7 +227,7 @@ class SPI(BasePeripheral):
         for instance in self.instances:
             if self.mode[instance] == 'Single SPI':
                 self.optional_pins[instance].extend(
-                    [pin for pin in self.all_pins[instance] if re.match(r'.?SPI(Q|D)', pin)]
+                    [pin for pin in self.all_pins[instance] if re.match(r'.?SPI\d?(Q|D)', pin)]
                 )
 
     @property
