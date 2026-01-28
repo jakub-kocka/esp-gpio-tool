@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
+# SPDX-FileCopyrightText: 2024-2026 Espressif Systems (Shanghai) CO LTD
 # SPDX-License-Identifier: Apache-2.0
 import re
 from typing import Any
@@ -148,6 +148,15 @@ class BasePeripheral:
         self.mode[instance] = mode
 
 
+class LowPowerBase(BasePeripheral):
+    """Base class for low power peripherals"""
+
+    def check_pin_function(self, instance: str, function: str, pin: Pin) -> None:
+        if not (pin.lp or pin.rtc):
+            raise ValueError(f'Pin {pin.pin} is not a low power pin.')
+        super().check_pin_function(instance, function, pin)
+
+
 class ADC(BasePeripheral):
     def __init__(
         self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
@@ -209,7 +218,7 @@ class SPI(BasePeripheral):
             self.supported_modes = modes
         self.mode = {i: 'Single SPI' for i in self.instances}
         self.reassignable = True
-        opt_filter = re.compile(r'.?SPI(CS\d|DQS)').match
+        opt_filter = re.compile(r'.?SPI\d?(CS\d|DQS)').match
         self.optional_pins = {
             key: list(filter(opt_filter, pins + self._universal_pins.get(key, [])))
             for key, pins in self._assigned_pins.items()
@@ -303,6 +312,17 @@ class SPI(BasePeripheral):
                     logger.note(f'{instance}D is required for Full Duplex Single SPI mode.')
 
 
+class LPSPI(LowPowerBase):
+    """Low power SPI peripheral"""
+
+    name = 'Low power SPI'
+
+    def __init__(
+        self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
+    ) -> None:
+        super().__init__(count, assigned_pins, universal_pins, common_prefix='LP_SPI')
+
+
 class I2C(BasePeripheral):
     def __init__(
         self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
@@ -310,13 +330,22 @@ class I2C(BasePeripheral):
         super().__init__(count, assigned_pins, universal_pins)
 
 
-class LPI2C(BasePeripheral):
+class LPI2C(LowPowerBase):
     """Low Power I2C peripheral"""
+
+    name = 'Low power I2C'
 
     def __init__(
         self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
     ) -> None:
         super().__init__(count, assigned_pins, universal_pins, common_prefix='LP_I2C')
+
+
+class I3C(BasePeripheral):
+    def __init__(
+        self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
+    ) -> None:
+        super().__init__(count, assigned_pins, universal_pins)
 
 
 class I2S(BasePeripheral):
@@ -329,6 +358,17 @@ class I2S(BasePeripheral):
         if function.endswith('_CLK') and function in self.assigned_pins[instance]:
             if not any(fun.startswith('CLK_OUT') for fun in pin.functions):
                 raise ValueError(f'Pin {pin.pin} does not support CLK_OUT, which is required for {function}.')
+
+
+class LPI2S(LowPowerBase):
+    """Low power I2S peripheral"""
+
+    name = 'Low power I2S'
+
+    def __init__(
+        self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
+    ) -> None:
+        super().__init__(count, assigned_pins, universal_pins, common_prefix='LP_I2S')
 
 
 class TOUCH(BasePeripheral):
@@ -381,17 +421,21 @@ class UART(BasePeripheral):
                 )
 
 
-class LPUART(BasePeripheral):
+class LPUART(LowPowerBase):
     """Low power UART peripheral"""
+
+    name = 'Low power UART'
 
     def __init__(
         self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
     ) -> None:
         super().__init__(count, assigned_pins, universal_pins, common_prefix='LP_UART')
-        self.optional_pins = self.unwrap_pins(assigned_pins)
+        self.optional_pins = self.all_pins  # all pins are optional, as we allow one way UART connections
 
 
 class SDIO(BasePeripheral):
+    """SDIO slave peripheral"""
+
     def __init__(
         self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
     ) -> None:
@@ -430,12 +474,12 @@ class SDIO(BasePeripheral):
 
 
 class SDMMC(BasePeripheral):
-    """SD/MMC card peripheral"""
+    """SD/SDIO/MMC host controller peripheral"""
 
     def __init__(
         self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
     ) -> None:
-        super().__init__(count, assigned_pins, universal_pins, start_cnt=1, common_prefix='SDHOST', **kwargs)
+        super().__init__(count, assigned_pins, universal_pins, start_cnt=1, common_prefix=r'SDHOST_.*_\d', **kwargs)
         self.supported_modes = kwargs.get('data_width', {str(i): [1] for i in self.instances})
         self.mode = {str(i): 1 for i in self.instances}
         self.mode_label = 'Data width'
@@ -596,17 +640,28 @@ class EMAC(BasePeripheral):
     ) -> None:
         super().__init__(count, assigned_pins, universal_pins, **kwargs)
         self.supported_modes = {'0': kwargs.get('modes', [])}
-        self.mode = {'0': 'RMII external CLK'}
+        self.set_mode('0', 'RMII external CLK')
 
     @property
     def assigned_pins(self) -> dict[str, list[str]]:
         # shared pins for RMII and MII
-        pins = ['TX_CLK', 'TX_EN', 'TXD0', 'TXD1', 'RX_DV', 'RXD0', 'RXD1']
+        pins = ['TX_EN', 'TXD0', 'TXD1', 'RX_DV', 'RXD0', 'RXD1']
         if self.mode['0'] == 'RMII internal CLK':
-            pins.append('CLK_OUT')
+            if 'EMAC_CLK_OUT' in self._assigned_pins['0']:  # esp32
+                pins.append('CLK_OUT')
+            else:  # esp32p4; REF_50M_CLK is output and has to be looped back to RMII_CLK
+                pins.extend(['REF_50M_CLK', 'RMII_CLK'])
+        elif self.mode['0'] == 'RMII external CLK':
+            # input clock pin
+            if 'EMAC_TX_CLK' in self._assigned_pins['0']:  # esp32
+                pins.append('TX_CLK')
+            else:  # esp32p4
+                pins.append('RMII_CLK')
         elif self.mode['0'] == 'MII':
-            # additional pins needed for MII
-            pins.extend(['RX_CLK', 'TXD2', 'TXD3', 'RX_ER', 'RXD2', 'RXD3', 'TX_ER'])
+            # MII is still not supported by ESP-IDF, but we allow it in case someone wants to implement a driver
+            # additional pins needed for MII; on esp32 MII pins are using MUX, but on esp32p4 they use matrix
+            if 'EMAC_RXD2' in self._assigned_pins['0']:
+                pins.extend(['TX_CLK', 'RX_CLK', 'TXD2', 'TXD3', 'RX_ER', 'RXD2', 'RXD3', 'TX_ER'])
         # sort pins so similar pins are after each other; mainly for additional TX and RX in MII
         pins.sort()
         # add prefixes to the pins, for better naming in the config
@@ -614,24 +669,39 @@ class EMAC(BasePeripheral):
 
     @property
     def universal_pins(self) -> dict[str, list[str]]:
-        pins = ['EMAC_MDC', 'EMAC_MDI', 'EMAC_MDO', 'EMAC_CRS']
+        pins = ['MDC', 'MDIO']
         if self.mode['0'] == 'MII':
-            pins.append('EMAC_COL')
-        return {'0': pins}
+            pins.extend(['COL', 'CRS'])
+            # additional pins needed for MII; on esp32 MII pins are using MUX, but on esp32p4 they use matrix
+            if 'EMAC_RXD2' in self._universal_pins['0']:
+                pins.extend(['RX_CLK', 'TX_CLK', 'TXD2', 'TXD3', 'RX_ER', 'RXD2', 'RXD3', 'TX_ER'])
+        return {'0': [f'EMAC_{i}' for i in pins]}
 
     def check_pin_function(self, instance: str, function: str, pin: Pin) -> None:
         if function == 'EMAC_CLK_OUT':
             # Note: CLK_OUT1 is experimental and on ESP32 is shared with RX_CLK signal on the same GPIO
             if not any(fun in ['CLK_OUT1', 'EMAC_CLK_OUT', 'EMAC_CLK_OUT_180'] for fun in pin.functions):
                 raise ValueError(f'Pin {pin.pin} does not support clock out, which is required for {function}.')
-        elif function in ['EMAC_MDC', 'EMAC_MDO', 'EMAC_CRS', 'EMAC_COL']:
+        if function == 'EMAC_REF_50M_CLK':
+            logger.note(
+                'REF_50M_CLK has to be looped back on PCB to EMAC_RMII_CLK when using RMII with internal clock.'
+            )
+        if function in ['EMAC_MDC', 'EMAC_MDIO', 'EMAC_CRS', 'EMAC_COL']:
             # check if GPIO supports output
             if not pin.is_output:
                 raise ValueError(f'Pin {pin.pin} does not support output, which is required for {function}.')
-        elif function in ['EMAC_MDI']:
-            if not pin.is_output:
+        if function in ['EMAC_MDIO']:
+            if not pin.is_input:
                 raise ValueError(f'Pin {pin.pin} does not support input, which is required for {function}.')
         super().check_pin_function(instance, function, pin)
+
+    def set_mode(self, instance: str, mode: str) -> None:
+        super().set_mode(instance, mode)
+        # TODO: We might make MDC and MDIO optional in the future with warning if not used
+        if mode == 'MII':
+            self.optional_pins = {'0': ['EMAC_TX_ER']}
+        else:
+            self.optional_pins = {'0': []}
 
 
 class CLKOUT(BasePeripheral):
@@ -664,7 +734,9 @@ class XTAL32K(BasePeripheral):
 
 
 class USBOTG(BasePeripheral):
-    """USB OTG peripheral"""
+    """USB OTG Full-Speed peripheral"""
+
+    name = 'USB OTG Full-Speed'
 
     def __init__(
         self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
@@ -672,10 +744,13 @@ class USBOTG(BasePeripheral):
         super().__init__(count, assigned_pins, universal_pins, common_prefix=r'USB_OTG', **kwargs)
         required_values = ['USB_OTG_D-', 'USB_OTG_D+']
         self.optional_pins = {'0': [val for val in self.assigned_pins if val not in required_values]}
+        # TODO: On esp32p4, this can be exchanged with USBSERIALJTAG peripheral, but efuse has to be burn
 
 
 class USBSERIALJTAG(BasePeripheral):
     """USB Serial/JTAG peripheral"""
+
+    name = 'USB Serial/JTAG'
 
     def __init__(
         self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
@@ -725,20 +800,20 @@ class LCDCAM(BasePeripheral):
                             output[str(instance)].append(pin)
         return output
 
-    def unwrap_channels(self, channels: int, pins: dict[str, list[str]]) -> dict[str, list[str]]:
+    def unwrap_channels(self, channels: dict[str, int] | int, pins: dict[str, list[str]]) -> dict[str, list[str]]:
         """Convert wildcard channels to actual channels, e.g.
         {subname}_DATA{{channel}} -> {LCD: [LCD_DATA0, LCD_DATA1... ]}
         """
+        if isinstance(channels, int):
+            channels = {i: channels for i in self.instances}
         for instance, instance_val in self.universal_pins.items():
             for pin in instance_val:
                 if '{channel}' not in pin:
                     continue
                 # replace wildcard with all possible channels
                 self._universal_pins[instance].remove(pin)
-                self._universal_pins[instance].extend([pin.format(channel=str(i)) for i in range(channels)])
+                self._universal_pins[instance].extend([pin.format(channel=str(i)) for i in range(channels[instance])])
         return pins
-
-    # TODO Pin OUT/IN based on the operation mode
 
     @property
     def universal_pins(self) -> dict[str, list[str]]:
@@ -755,6 +830,32 @@ class LCDCAM(BasePeripheral):
                 pins[instance] = self._universal_pins[instance]
         return pins
 
+    def set_mode(self, instance: str, mode: str) -> None:
+        super().set_mode(instance, mode)
+        if instance == 'CAM':
+            if 'Slave' in mode:
+                self.optional_pins[instance] = ['CAM_CLK']
+            else:
+                self.optional_pins[instance] = []
+
+    def check_required_pins(self, assigned_functions: list[str]) -> None:
+        super().check_required_pins(assigned_functions)
+        for instance in self.used_instances:
+            if instance == 'CAM':
+                if 'CAM_CLK' in assigned_functions and 'Slave' in str(self.mode[instance]):
+                    logger.warn('CAM_CLK is not used in Slave mode for CAM.')
+            elif instance == 'LCD':
+                # TODO: Consider printing warnings for using pins for mixed modes
+                if any(f in assigned_functions for f in ['LCD_H_SYNC', 'LCD_V_SYNC', 'LCD_H_ENABLE']):
+                    if not all(f in assigned_functions for f in ['LCD_H_SYNC', 'LCD_V_SYNC', 'LCD_H_ENABLE']):
+                        logger.error(
+                            'LCD_H_SYNC, LCD_V_SYNC, and LCD_H_ENABLE are required '
+                            'when using parallel RGB mode for LCD.'
+                        )
+                elif any(f in assigned_functions for f in ['LCD_CD', 'LCD_CS']):
+                    if not all(f in assigned_functions for f in ['LCD_CD', 'LCD_CS']):
+                        logger.error('LCD_CD and LCD_CS are required when using 8080 / MOTO6800 mode for LCD.')
+
 
 class PARLIO(BasePeripheral):
     """Parallel IO peripheral"""
@@ -767,6 +868,9 @@ class PARLIO(BasePeripheral):
         self.mode = {str(i): 1 for i in self.instances}
         self.mode_label = 'Data width'
         self._universal_pins = self._unwrap_data_pins()
+        # All TX and RX pins are initially optional - they become required based on usage
+        # This allows TX-only, RX-only, or duplex modes
+        self.optional_pins = self.all_pins
 
     @property
     def universal_pins(self) -> dict[str, list[str]]:
@@ -798,12 +902,49 @@ class PARLIO(BasePeripheral):
         super().set_mode(instance, mode)
         self.mode[instance] = int(mode)
 
+    def check_required_pins(self, assigned_functions: list[str]) -> None:
+        """Check required pins based on TX/RX usage"""
+        super().check_required_pins(assigned_functions)
+        for instance in self.used_instances:
+            # Check which direction is being used
+            has_tx = any(f.startswith('PARL_TX_') for f in assigned_functions)
+            has_rx = any(f.startswith('PARL_RX_') for f in assigned_functions)
 
-class ZCD(BasePeripheral):
-    """PAD voltage comparator (Zero Crossing Detector)"""
+            if not has_tx and not has_rx:
+                logger.error(
+                    'PARLIO requires at least TX or RX pins to be assigned. Please assign at least one of them.'
+                )
+                continue
+
+            # Check TX requirements if TX is used
+            if has_tx:
+                tx_data_pins = [f for f in assigned_functions if f.startswith('PARL_TX_DATA')]
+                if not tx_data_pins:
+                    logger.error('At least one PARL_TX_DATA pin is required when using TX mode for PARLIO.')
+                if len(tx_data_pins) != self.mode[instance]:
+                    logger.error(
+                        f'Number of PARL_TX_DATA ({len(tx_data_pins)}) pins must match '
+                        f'the data width ({self.mode[instance]}) for PARLIO.'
+                    )
+
+            # Check RX requirements if RX is used
+            if has_rx:
+                rx_data_pins = [f for f in assigned_functions if f.startswith('PARL_RX_DATA')]
+                if not rx_data_pins:
+                    logger.error('At least one PARL_RX_DATA pin is required when using RX mode for PARLIO.')
+                if len(rx_data_pins) != self.mode[instance]:
+                    logger.error(
+                        f'Number of PARL_RX_DATA ({len(rx_data_pins)}) pins must match '
+                        f'the data width ({self.mode[instance]}) for PARLIO.'
+                    )
+
+
+class ANACOMP(BasePeripheral):
+    """Analog PAD Voltage Comparator"""
 
     def __init__(
         self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
     ) -> None:
-        super().__init__(count, assigned_pins, universal_pins, common_prefix='ZCD', **kwargs)
-        self.optional_pins = {'0': ['ZCD0']}  # ZCD0 is optional reference (internal one can be used to replace)
+        super().__init__(count, assigned_pins, universal_pins, common_prefix=r'ANA_COMP\d', **kwargs)
+        # ANA_COMPx_PAD0 is optional reference (internal one can be used to replace)
+        self.optional_pins = {i: [f'ANA_COMP{i}_PAD0'] for i in self.instances}

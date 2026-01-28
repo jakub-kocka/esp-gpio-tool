@@ -125,7 +125,7 @@ class ESP:
     def get_peripheral(self, name: str) -> BasePeripheral:
         """Return peripheral with the given name"""
         for peripheral in self.peripherals:
-            if peripheral.name == name:
+            if peripheral.name == name or peripheral.__class__.__name__ == name:
                 return peripheral
         raise ValueError(f'Peripheral {name} not found in peripherals for {self.name}.')
 

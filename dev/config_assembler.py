@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+# SPDX-FileCopyrightText: 2024-2026 Espressif Systems (Shanghai) CO LTD
 # SPDX-License-Identifier: Apache-2.0
 #
 # This script is meant to generate "gpio" part of the target configuration file from excel "pin-table-helper" file.
@@ -33,8 +33,11 @@ def _functions_builder(file: pd.DataFrame) -> list[list[str]]:
             if file[fnc][i] == val:
                 continue
             if not pd.isna(file[fnc][i]):
-                pin_fncs.append(file[fnc][i])
+                pin_fncs.append(file[fnc][i].strip())
         functions.append(pin_fncs)
+
+        # Remove duplicates while preserving order
+        functions[i] = list(dict.fromkeys(functions[i]))
 
     return functions
 
@@ -54,22 +57,23 @@ def _yaml_builder(
             continue
         pin = pin.split('GPIO')[1]
         line = ''
-        line += f'\t{pin}:\t{{ power_domain: {power_domain[i]}'
+        line += f'  {pin}: {{ power_domain: {power_domain[i]}'
 
-        line += f',\tfunctions: {functions[i]}'
+        line += f', functions: {functions[i]}'
 
         if not pd.isna(strapping[i]):
             line += f', strapping: "{strapping[i]}"'
 
         pull_res = None
-        if 'wpu' in at_reset[i]:
-            pull_res = 'PUP'
-        elif 'wpd' in at_reset[i]:
-            pull_res = 'PDOWN'
+        if not pd.isna(at_reset[i]):
+            if 'wpu' in at_reset[i]:
+                pull_res = 'PUP'
+            elif 'wpd' in at_reset[i]:
+                pull_res = 'PDOWN'
 
         line += f', at_reset: {pull_res}' if pull_res else ''
 
-        line += ' }'
+        line += '}'
 
         print(line)
 
