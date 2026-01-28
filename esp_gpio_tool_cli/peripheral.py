@@ -822,11 +822,18 @@ class LCDCAM(BasePeripheral):
             if '8 bit' in str(self.mode[instance]):
                 pins[instance] = list(
                     filter(
-                        lambda x: not x.endswith(tuple(str(x) for x in range(8, 16))),
+                        lambda x: not x.endswith(tuple(str(x) for x in range(8, 24))),
                         self._universal_pins[instance],
                     )
                 )
             elif '16 bit' in str(self.mode[instance]):
+                pins[instance] = list(
+                    filter(
+                        lambda x: not x.endswith(tuple(str(x) for x in range(16, 24))),
+                        self._universal_pins[instance],
+                    )
+                )
+            elif '24 bit' in str(self.mode[instance]):
                 pins[instance] = self._universal_pins[instance]
         return pins
 
