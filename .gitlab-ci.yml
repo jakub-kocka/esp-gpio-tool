@@ -117,7 +117,7 @@ codebase-tests:
   script:
     - python -m pip install pyinstaller
     - python -m pip install -e .
-    - python -m PyInstaller -F --icon=${RESOURCES}espressif-logo.ico --add-data="${TARGETS}*.yaml${SEPARATOR}${TARGETS}" -n espins_cli esp_gpio_tool_cli/__main__.py
+    - python -m PyInstaller -F --icon=${RESOURCES}espressif-logo.ico --add-data="${TARGETS}*.yaml${SEPARATOR}${TARGETS}" -n espins-cli esp_gpio_tool_cli/__main__.py
     - python -m PyInstaller -w -F --icon=${RESOURCES}espressif-logo.ico --add-data="${TARGETS}*.yaml${SEPARATOR}${TARGETS}" --add-data="${RESOURCES}*${SEPARATOR}${RESOURCES}" -n espins esp_gpio_tool/__main__.py
 
 linux-build:

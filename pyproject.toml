@@ -16,7 +16,8 @@
 
     dependencies = [
         "pyyaml",
-        "click",
+        "rich-click",
+        "rich",
     ]
 
 
@@ -28,7 +29,7 @@
         test = ["pytest-cov~=4.1.0", "pytest~=7.4.0"]
 
     [project.scripts]
-        espins_cli = "esp_gpio_tool_cli.__main__:main"
+        espins-cli = "esp_gpio_tool_cli.__main__:main"
         espins = "esp_gpio_tool.__main__:main"
 
 

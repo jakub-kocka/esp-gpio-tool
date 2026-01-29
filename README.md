@@ -64,7 +64,7 @@ ESP GPIO tool currently supports checking of pin assignment for ESP32 using CLI.
 Getting a list of all possible functions might help with writing the function names correctly. Since there are some differences in names across the chips and also between datasheets and ESP-IDF. The following command will provide all functions available for the selected chip, split by peripherals.
 
 ```sh
-espins_cli list-pins esp32
+espins-cli list-pins esp32
 ```
 
 ### GPIO Assignment Checker
@@ -80,7 +80,7 @@ python -m esp_gpio_tool_cli check myconfig.yaml
 or
 
 ```sh
-espins_cli check myconfig.yaml
+espins-cli check myconfig.yaml
 ```
 
 For details regarding the format of the input file please refer to the Input file section.
