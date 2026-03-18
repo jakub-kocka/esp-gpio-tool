@@ -61,8 +61,10 @@ peripheral:
     channels: 3
     universal_pins: ['MCPWM{count}_SYNC_IN{{channel}}', 'MCPWM{count}_FLT_IN{{channel}}', 'MCPWM{count}_CAP_IN{{channel}}', 'MCPWM{count}_OUT{{channel}}A', 'MCPWM{count}_OUT{{channel}}B']
   LEDC:  # LED PWM
-    count: 8
-    universal_pins: ['LEDC_SIG_OUT{count}']
+    count: 2
+    channels: 8
+    subname: [HS, LS]
+    universal_pins: ['LEDC_{subname}_SIG_OUT{{channel}}']
   TWAI:
     count: 1
     universal_pins: [TWAI_RX, TWAI_TX, TWAI_BUS_OFF_ON, TWAI_CLKOUT]

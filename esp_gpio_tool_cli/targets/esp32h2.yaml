@@ -23,8 +23,9 @@ peripheral:
     subname: [FSPI]
     assigned_pins: ['{subname}CLK', '{subname}Q', '{subname}D', '{subname}HD', '{subname}WP', '{subname}CS0', '{subname}CS1', '{subname}CS2', '{subname}CS3', '{subname}CS4', '{subname}CS5']
   LEDC:  # LED PWM
-    count: 6
-    universal_pins: ['LEDC_SIG_OUT{count}']
+    count: 1
+    channels: 6
+    universal_pins: ['LEDC_LS_SIG_OUT{channel}']
   MCPWM:  # Motor Control PWM
     count: 1
     channels: 3
