@@ -134,6 +134,21 @@ class BasePeripheral:
                     output[str(self.start_cnt)].append(pin)
         return output
 
+    def unwrap_channels(self, channels: int | dict[str, int], pins: dict[str, list[str]]) -> dict[str, list[str]]:
+        """Convert wildcard channels to actual channels"""
+        output: dict[str, list[str]] = {}
+        if not channels:
+            return pins
+        for instance in pins.keys():
+            output[instance] = []
+            channels_count = channels[instance] if isinstance(channels, dict) else channels
+            for pin in pins[instance]:
+                if '{channel}' in pin:
+                    output[instance].extend([pin.format(channel=str(i)) for i in range(channels_count)])
+                else:
+                    output[instance].append(pin)
+        return output
+
     def set_mode(self, instance: str, mode: str) -> None:
         """Set mode of interface communication"""
         if instance not in self.instances:
@@ -167,21 +182,8 @@ class ADC(BasePeripheral):
             self.channels = {i: channels for i in self.instances}
         else:
             self.channels = channels
-        self.unwrap_channels(self.channels, self._assigned_pins)
+        self._assigned_pins = self.unwrap_channels(self.channels, self._assigned_pins)
         self.optional_pins = self.assigned_pins  # all pins are optional
-
-    def unwrap_channels(self, channels: dict[str, int], pins: dict[str, list[str]]) -> dict[str, list[str]]:
-        """Convert wildcard channels to actual channels, e.g.
-        - ADC1_CH{channel} -> {1: [ADC1_CH1, ADC1_CH2... ]}
-        """
-        for instance in self.assigned_pins.keys():
-            for pin in self.assigned_pins[instance]:
-                if '{channel}' not in pin:
-                    continue
-                # replace wildcard with all possible channels
-                self._assigned_pins[instance].remove(pin)
-                self._assigned_pins[instance].extend([pin.format(channel=str(i)) for i in range(channels[instance])])
-        return pins
 
     def use(self, function: str, pin: Pin) -> None:
         """Check ADC specific limitations"""
@@ -554,6 +556,34 @@ class RMT(BasePeripheral):
 class LEDC(BasePeripheral):
     """LED PWM peripheral"""
 
+    def __init__(
+        self, count: int, assigned_pins: list[str] = None, universal_pins: list[str] = None, **kwargs: Any
+    ) -> None:
+        super().__init__(
+            count,
+            assigned_pins,
+            universal_pins,
+            instances=kwargs.get('subname', ['LS']),
+            _replace_keyword='subname',
+            **kwargs,
+        )
+        self._universal_pins = self.unwrap_channels(kwargs.get('channels', 0), self._universal_pins)
+        self.optional_pins = self.universal_pins  # all pins are optional
+
+    def unwrap_pins(self, pins: list[str] | None) -> dict[str, list[str]]:
+        """Single low-speed block uses instance 'LS', not '0', so literals map to that key."""
+        if pins is None:
+            return {}
+        out: dict[str, list[str]] = {}
+        for inst in self.instances:
+            out[inst] = []
+            for pin in pins:
+                if f'{{{self._replace_keyword}}}' in pin:
+                    out[inst].append(pin.format(**{self._replace_keyword: inst}))
+                else:
+                    out[inst].append(pin)
+        return out
+
 
 class MCPWM(BasePeripheral):
     """Motor Control PWM peripheral"""
@@ -565,20 +595,6 @@ class MCPWM(BasePeripheral):
         self._universal_pins = self.unwrap_channels(kwargs.get('channels', 0), self._universal_pins)
         self.optional_pins = self.universal_pins  # all pins are optional
 
-    def unwrap_channels(self, channels: int, pins: dict[str, list[str]]) -> dict[str, list[str]]:
-        """Convert wildcard channels to actual channels"""
-        output: dict[str, list[str]] = {}
-        if channels:
-            for instance in pins.keys():
-                output[instance] = []
-                for pin in pins[instance]:
-                    if '{channel}' not in pin:
-                        output[instance].append(pin)
-                    # replace wildcard with all possible channels
-                    output[instance].extend([pin.format(channel=str(i)) for i in range(channels)])
-            return output
-        return pins
-
 
 class PCNT(BasePeripheral):
     """Pulse Counter peripheral"""
@@ -589,20 +605,6 @@ class PCNT(BasePeripheral):
         super().__init__(count, assigned_pins, universal_pins, **kwargs)
         self._universal_pins = self.unwrap_channels(kwargs.get('channels', 0), self._universal_pins)
         self._used_pins: list[str] = []
-
-    def unwrap_channels(self, channels: int, pins: dict[str, list[str]]) -> dict[str, list[str]]:
-        """Convert wildcard channels to actual channels"""
-        output: dict[str, list[str]] = {}
-        if channels:
-            for instance in pins.keys():
-                output[instance] = []
-                for pin in pins[instance]:
-                    if '{channel}' not in pin:
-                        output[instance].append(pin)
-                    # replace wildcard with all possible channels
-                    output[instance].extend([pin.format(channel=str(i)) for i in range(channels)])
-            return output
-        return pins
 
     def required_pins(self, instance: str) -> list[str]:
         """Return all required pins for a peripheral instance"""

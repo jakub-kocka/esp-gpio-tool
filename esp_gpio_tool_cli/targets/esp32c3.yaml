@@ -27,8 +27,9 @@ peripheral:
     count: 2
     universal_pins: ['RMT{count}_TX', 'RMT{count}_RX']
   LEDC:
-    count: 6
-    universal_pins: ['LEDC_SIG_OUT{count}']
+    count: 1
+    channels: 6
+    universal_pins: ['LEDC_LS_SIG_OUT{channel}']
   USBSERIALJTAG:  # USB Serial/JTAG
     count: 1
     assigned_pins: [USB_D-, USB_D+]

@@ -35,8 +35,9 @@ peripheral:
     channels: 3
     universal_pins: ['MCPWM{count}_SYNC_IN{{channel}}', 'MCPWM{count}_FLT_IN{{channel}}', 'MCPWM{count}_CAP_IN{{channel}}', 'MCPWM{count}_OUT{{channel}}A', 'MCPWM{count}_OUT{{channel}}B']
   LEDC:  # LED PWM
-    count: 6
-    universal_pins: ['LEDC_SIG_OUT{count}']
+    count: 1
+    channels: 6
+    universal_pins: ['LEDC_LS_SIG_OUT{channel}']
   USBSERIALJTAG:  # USB Serial/JTAG
     count: 1
     assigned_pins: [USB_D-, USB_D+]

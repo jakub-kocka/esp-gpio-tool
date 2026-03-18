@@ -44,8 +44,9 @@ peripheral:
     count: 1
     universal_pins: ['RMT_SIG_IN{count}', 'RMT_SIG_OUT{count}']
   LEDC:  # LED PWM
-    count: 8
-    universal_pins: ['LEDC_LS_SIG_OUT{count}']
+    count: 1
+    channels: 8
+    universal_pins: ['LEDC_LS_SIG_OUT{channel}']
   TWAI:
     count: 1
     universal_pins: [TWAI_RX, TWAI_TX, TWAI_BUS_OFF_ON, TWAI_CLKOUT]

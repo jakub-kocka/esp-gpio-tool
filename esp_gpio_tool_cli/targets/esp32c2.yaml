@@ -20,9 +20,10 @@ peripheral:
     modes: [Single SPI, Dual SPI, Quad SPI]
     assigned_pins: ['{subname}CLK', '{subname}Q', '{subname}D', '{subname}HD', '{subname}WP', '{subname}CS0']
     universal_pins: [FSPICS1, FSPICS2, FSPICS3, FSPICS4, FSPICS5]
-  LEDC:  # signal name from datasheet (pg. 24): ledc_ls_sig_out{count}
-    count: 6
-    universal_pins: ['LEDC_SIG_OUT{count}']
+  LEDC:
+    count: 1
+    channels: 6
+    universal_pins: ['LEDC_LS_SIG_OUT{channel}']
 
 gpio:
   0: {power_domain: VDD3P3_RTC, rtc: true, functions: [ADC1_CH0]}

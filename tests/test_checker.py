@@ -63,12 +63,12 @@ def test_valid_config_multiple_functions() -> None:
     config = """
     chip: esp32
     36: ADC1_CH0
-    3: [LEDC_SIG_OUT0, LEDC_SIG_OUT1, RMT_SIG_IN0]
+    3: [LEDC_HS_SIG_OUT0, LEDC_HS_SIG_OUT1, RMT_SIG_IN0]
     """
     result = run(config)
     assert (
         'Warning: Pin 3 has been used multiple times, reusing pins is not recommended. '
-        'Assigned functions: LEDC_SIG_OUT0, LEDC_SIG_OUT1, RMT_SIG_IN0' in result
+        'Assigned functions: LEDC_HS_SIG_OUT0, LEDC_HS_SIG_OUT1, RMT_SIG_IN0' in result
     )
 
 

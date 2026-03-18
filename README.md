@@ -133,7 +133,7 @@ chip: esp32
 soc: ESP32-PICO-V3
 
 0: TOUCH0
-3: [LEDC_SIG_OUT0, LEDC_SIG_OUT1, RMT_SIG_IN0]
+3: [LEDC_HS_SIG_OUT0, LEDC_HS_SIG_OUT1, RMT_SIG_IN0]
 ```
 
 ##### Peripheral Mode Selection
@@ -206,7 +206,7 @@ from esp_gpio_tool_cli.checker import run_check
 config = {
   "chip": "esp32",
   0: "TOUCH1",
-  3: ["LEDC_SIG_OUT0", "LEDC_SIG_OUT1", "RMT_SIG_IN0"],
+  3: ["LEDC_HS_SIG_OUT0", "LEDC_HS_SIG_OUT1", "RMT_SIG_IN0"],
 }
 out = run_check(config)
 # Output is provided as a list of messages

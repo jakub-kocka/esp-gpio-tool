@@ -75,8 +75,9 @@ peripheral:
     universal_pins: [SDHOST_CCLK_2, SDHOST_CCMD_2, 'SDHOST_CDATA_2{data_width}', 'SDHOST_RST_{count}', 'SDHOST_CCMD_OD_PULLUP_EN_{count}', 'SDHOST_DATA_STROBE_{count}', 'SDHOST_CARD_DETECT_{count}', 'SDHOST_CARD_WRITE_PRT_{count}',
       'SDHOST_CARD_INT_{count}']
   LEDC:
-    count: 8
-    universal_pins: ['LEDC_SIG_OUT{count}']
+    count: 1
+    channels: 8
+    universal_pins: ['LEDC_LS_SIG_OUT{channel}']
   MCPWM:
     count: 2
     channels: 3
