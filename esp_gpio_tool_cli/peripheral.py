@@ -154,6 +154,8 @@ class BasePeripheral:
         if instance not in self.instances:
             raise ValueError(f'Instance {instance} not found. Supported instances: {self.instances}')
         supported_modes = [str(i) for i in self.supported_modes.get(instance, [])]
+        if not supported_modes:
+            raise ValueError(f'Peripheral {self.name} {instance} does not support any modes.')
         mode = str(mode)
         if mode not in supported_modes:
             raise ValueError(
@@ -745,7 +747,8 @@ class USBOTG(BasePeripheral):
     ) -> None:
         super().__init__(count, assigned_pins, universal_pins, common_prefix=r'USB_OTG', **kwargs)
         required_values = ['USB_OTG_D-', 'USB_OTG_D+']
-        self.optional_pins = {'0': [val for val in self.assigned_pins.get('0') if val not in required_values]}  # type: ignore
+        pins_0 = self.assigned_pins.get('0') or []
+        self.optional_pins = {'0': [val for val in pins_0 if val not in required_values]}
         # TODO: On esp32p4, this can be exchanged with USBSERIALJTAG peripheral, but efuse has to be burn
 
 
@@ -759,7 +762,8 @@ class USBSERIALJTAG(BasePeripheral):
     ) -> None:
         super().__init__(count, assigned_pins, universal_pins, common_prefix=r'USB(?!_OTG).', **kwargs)
         required_values = ['USB_D-', 'USB_D+']
-        self.optional_pins = {'0': [val for val in self.assigned_pins.get('0') if val not in required_values]}  # type: ignore
+        pins_0 = self.assigned_pins.get('0') or []
+        self.optional_pins = {'0': [val for val in pins_0 if val not in required_values]}
 
 
 class LCDCAM(BasePeripheral):

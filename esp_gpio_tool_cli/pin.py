@@ -1,7 +1,8 @@
-# SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
+# SPDX-FileCopyrightText: 2024-2026 Espressif Systems (Shanghai) CO LTD
 # SPDX-License-Identifier: Apache-2.0
 from dataclasses import dataclass
 from dataclasses import field
+from functools import cached_property
 
 from esp_gpio_tool_cli.logger import Logger
 
@@ -27,6 +28,14 @@ class Pin:
     @property
     def used(self) -> bool:
         return bool(self.assigned_functions)
+
+    @cached_property
+    def is_debug_pin(self) -> bool:
+        return any(f in DEBUG_FUCTIONS for f in self.functions)
+
+    @cached_property
+    def is_serial_pin(self) -> bool:
+        return any(f in SERIAL_FUCTIONS for f in self.functions)
 
     def __str__(self) -> str:
         return f'GPIO{self.pin} - {self.power_domain}'
@@ -58,18 +67,10 @@ class Pin:
                 logger.note(f'Pin {self.pin} has an internal pull-down resistor enabled at reset.')
 
             # Check for debug functions
-            debug_function = [f for f in self.functions if f in DEBUG_FUCTIONS]
-            if function not in DEBUG_FUCTIONS and debug_function:
-                logger.warn(
-                    f'Pin {self.pin} is reserved for JTAG debugging or USB. Please use with caution! '
-                    f'Debug function: {debug_function[0]}'
-                )
+            if function not in DEBUG_FUCTIONS and self.is_debug_pin:
+                logger.warn(f'Pin {self.pin} is reserved for JTAG debugging or USB. Please use with caution!')
             # Check for serial functions
-            serial_function = [f for f in self.functions if f in SERIAL_FUCTIONS]
-            if function not in SERIAL_FUCTIONS and serial_function:
-                logger.warn(
-                    f'Pin {self.pin} is reserved for serial debug/programming. Please use with caution! '
-                    f'Serial function: {serial_function[0]}'
-                )
+            if function not in SERIAL_FUCTIONS and self.is_serial_pin:
+                logger.warn(f'Pin {self.pin} is reserved for serial debug/programming. Please use with caution!')
 
         self.assigned_functions.append(function)

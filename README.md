@@ -28,6 +28,7 @@ It offers GPIO-related tools.
 - [Documentation](#documentation)
   - [Get List of Functions](#get-list-of-functions)
   - [GPIO Assignment Checker](#gpio-assignment-checker)
+    - [AI Agent](#ai-agent)
     - [GUI](#gui)
     - [Input File](#input-file)
       - [Peripheral Mode Selection](#peripheral-mode-selection)
@@ -57,7 +58,11 @@ Clone the repository and install the Python package
 
 ## Documentation
 
-ESP GPIO tool currently supports checking of pin assignment for ESP32 using CLI.
+ESP GPIO tool currently supports checking of pin assignment for ESP32 using CLI and simple GUI.
+
+### AI Agent
+
+ESP GPIO tool has also experimental implementation of interactive AI Agent that should help better understand user requirements and suggest a pin assignment. We also support [MCP server](https://modelcontextprotocol.io/docs/getting-started/intro) for easier integration of tool into any agent. For more details see agent [README.md](esp_gpio_tool_cli/ai_agent/README.md)
 
 ### Get List of Functions
 

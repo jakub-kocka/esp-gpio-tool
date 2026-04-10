@@ -1,3 +1,28 @@
+features:
+  cpu:
+    cores:
+      count: 1
+      max_freq_mhz: 96
+  memory:
+    internal:
+      sram_kb: 320
+      lp_sram_kb: 4
+      cache_kb: 16
+  connectivity:
+    wifi:
+      supported: false
+    bluetooth:
+      supported: true
+      version: BLE 5.3
+    ieee_802154:
+      supported: true
+      protocols: [Thread, Zigbee, Matter over Thread]
+    ethernet:
+      mac: false
+    usb:
+      otg_fs_2_0: false
+      usb_serial_jtag: true
+
 peripheral:
   ADC:
     count: 1
