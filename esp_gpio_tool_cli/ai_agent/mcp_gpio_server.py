@@ -64,6 +64,95 @@ async def get_supported_chips() -> str:
     return json.dumps({'chips': SUPPORTED_CHIPS})
 
 
+def _resolve_feature(features: dict, path: str) -> Any:
+    """Resolve a dot-separated path like 'connectivity.wifi.supported' in a nested dict."""
+    current = features
+    for key in path.split('.'):
+        if not isinstance(current, dict) or key not in current:
+            return None
+        current = current[key]
+    return current
+
+
+@mcp.tool()
+@handle_mcp_error
+async def find_chips(
+    connectivity: Annotated[
+        list[str] | None,
+        Field(
+            description=(
+                'Required connectivity features. Each entry is checked against '
+                'connectivity.<name>.supported in chip features. '
+                'Examples: ["wifi", "bluetooth", "ieee_802154"]. '
+                'A chip matches only if ALL listed features have supported=true.'
+            ),
+        ),
+    ] = None,
+    peripherals: Annotated[
+        list[str] | None,
+        Field(
+            description=(
+                'Required peripheral names. Each entry must match a peripheral name '
+                'on the chip (e.g. ["I2C", "TWAI", "SPI"]). '
+                'A chip matches only if ALL listed peripherals are present.'
+            ),
+        ),
+    ] = None,
+    min_gpios: Annotated[
+        int | None,
+        Field(description='Minimum number of available GPIOs required.'),
+    ] = None,
+) -> dict[str, Any]:
+    """Find chips that match all specified requirements.
+
+    Filters all supported chips by connectivity features, required peripherals,
+    and minimum GPIO count. Returns matching chips sorted by GPIO count (ascending,
+    simplest first) with their features and peripheral names for comparison.
+
+    Example: find_chips(connectivity=["wifi", "ieee_802154"], peripherals=["I2C"])
+    returns only chips that have both WiFi and IEEE 802.15.4 radios plus an I2C peripheral.
+    """
+    results = []
+    for chip_name in SUPPORTED_CHIPS:
+        try:
+            esp = ESP(chip_name)
+            features = esp.features
+
+            if connectivity:
+                match = True
+                for conn in connectivity:
+                    supported = _resolve_feature(features, f'connectivity.{conn}.supported')
+                    if supported is not True:
+                        match = False
+                        break
+                if not match:
+                    continue
+
+            if peripherals:
+                # Match both p.name and p.__class__.__name__ (e.g. LPSPI has name='Low power SPI')
+                chip_periph_names = set()
+                for p in esp.peripherals:
+                    chip_periph_names.add(p.name)
+                    chip_periph_names.add(p.__class__.__name__)
+                if not all(req in chip_periph_names for req in peripherals):
+                    continue
+
+            if min_gpios is not None and len(esp.gpios) < min_gpios:
+                continue
+
+            results.append(_get_chip_info(chip_name))
+        except Exception:
+            logger.debug(f'Error getting chip info for {chip_name}', exc_info=True)
+
+    results.sort(key=lambda r: r.get('total_gpios', 0))
+
+    return {
+        'matching_chips': [r['chip'] for r in results],
+        'count': len(results),
+        'chips': results,
+    }
+
+
 @mcp.resource('esp://chip/{chip}')
 @handle_mcp_error
 async def get_chip_info(chip: str) -> str:
@@ -90,6 +179,7 @@ def _get_chip_info(chip: str, soc: str | None = None) -> dict[str, Any]:
         'chip': chip,
         'soc': str(esp.selected_soc) if esp.selected_soc else None,
         'available_socs': [str(s) for s in esp.soc_list],
+        'features': esp.features,
         'total_gpios': len(esp.gpios),
         'available_gpios': [pin.pin for pin in esp.free_pins],
         'peripherals': [

@@ -1,3 +1,28 @@
+features:
+  cpu:
+    cores:
+      count: 2
+      max_freq_mhz: 240
+  memory:
+    internal:
+      sram_kb: 512
+      lp_sram_kb: 16
+  connectivity:
+    wifi:
+      supported: true
+      standard: 802.11b/g/n
+      max_data_rate_mbps: 150
+    bluetooth:
+      supported: true
+      version: BLE 5
+    ieee_802154:
+      supported: false
+    ethernet:
+      mac: false
+    usb:
+      otg_fs_2_0: true
+      usb_serial_jtag: true
+
 peripheral:
   ADC:
     count: 2

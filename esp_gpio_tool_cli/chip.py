@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
+# SPDX-FileCopyrightText: 2024-2026 Espressif Systems (Shanghai) CO LTD
 # SPDX-License-Identifier: Apache-2.0
 import os
 import re
@@ -59,6 +59,11 @@ class ESP:
         self.load_peripherals()
         self.load_socs()
         self.selected_soc = None
+
+    @cached_property
+    def features(self) -> dict:
+        """Return chip features useful for chip selection (CPU, memory, connectivity, etc.)"""
+        return self.config.get('features', {})
 
     @property
     def assigned_pins(self) -> list[Pin]:

@@ -1,3 +1,41 @@
+features:
+  cpu:
+    count: 2
+    max_freq_mhz: 360
+    lp_count: 1
+    lp_max_freq_mhz: 40
+  memory:
+    internal:
+      sram_kb: 768
+      lp_sram_kb: 32
+      spm_kb: 8
+  connectivity:
+    wifi:
+      supported: false
+    bluetooth:
+      supported: false
+    ethernet:
+      mac: true
+    usb:
+      otg_hs_2_0: true
+      otg_fs_2_0: true
+      usb_serial_jtag: true
+    sdio:
+      host_3_0: true
+      slave: false
+  hmi:
+    camera:
+      mipi_csi: true
+      parallel_camera_if: true
+      max_resolution: 1080p
+      jpeg_codec: true
+      h264_encoder: 1080p@30fps
+    display:
+      mipi_dsi: true
+      lcd_parallel_if: true
+      max_resolution: 1080p
+      ppa: true
+
 peripheral:
   ADC:
     count: 2
