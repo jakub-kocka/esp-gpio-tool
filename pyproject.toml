@@ -25,6 +25,10 @@
         mcp = [
             "mcp[cli]>=1.5.0",
         ]
+        ai_agent = [
+            "openai",
+            "questionary",
+        ]
         dev = [
             "czespressif",
             "pandas[excel]~=2.2.2",

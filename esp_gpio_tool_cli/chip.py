@@ -18,6 +18,9 @@ SUPPORTED_CHIPS = [filename.split('.')[0] for filename in os.listdir(CONFIG_DIR)
 
 logger = Logger()
 
+# MCPWM generator outputs (A/B per channel); excludes SYNC/FLT/CAP which are not servo-style PWM.
+_MCPWM_PWM_OUT_FN_RE = re.compile(r'^MCPWM\d+_OUT\d+[AB]$')
+
 
 def load_config(target: str) -> dict[str, dict]:
     """Load config from yaml file"""
@@ -166,3 +169,34 @@ class ESP:
         assigned_functions = list(chain.from_iterable([pin.assigned_functions for pin in self.assigned_pins]))
         for peripheral in self.used_peripherals:
             peripheral.check_required_pins(assigned_functions)
+
+
+def get_peripheral_instance_counts(esp: ESP) -> dict[str, int]:
+    """Number of independent controller instances per peripheral type (e.g. SPI blocks, UART ports).
+
+    This is ``len(instances)`` from the pin tool model — e.g. three SPI blocks vs one LEDC block with many PWM channels.
+    For PWM channel totals use :func:`get_pwm_output_capacity` instead.
+    """
+    return {p.__class__.__name__: len(p.instances) for p in esp.peripherals}
+
+
+def get_pwm_output_capacity(esp: ESP) -> dict[str, int]:
+    """Count on-chip PWM-style signals usable for independent outputs (e.g. servos).
+
+    Sums LEDC ``SIG_OUT`` functions across instances and MCPWM ``OUTnA``/``OUTnB`` outputs.
+    """
+    ledc = 0
+    mcpwm = 0
+    for p in esp.peripherals:
+        cls_name = p.__class__.__name__
+        if cls_name == 'LEDC':
+            for flist in p.universal_pins.values():
+                ledc += sum(1 for f in flist if 'SIG_OUT' in f)
+        elif cls_name == 'MCPWM':
+            for flist in p.universal_pins.values():
+                mcpwm += sum(1 for f in flist if _MCPWM_PWM_OUT_FN_RE.match(f))
+    return {
+        'ledc_pwm_outputs': ledc,
+        'mcpwm_pwm_outputs': mcpwm,
+        'max_independent_pwm_outputs': ledc + mcpwm,
+    }

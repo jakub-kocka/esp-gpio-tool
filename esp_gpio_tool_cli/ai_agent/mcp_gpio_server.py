@@ -22,6 +22,8 @@ from pydantic import Field
 from esp_gpio_tool_cli.checker import run_check
 from esp_gpio_tool_cli.chip import ESP
 from esp_gpio_tool_cli.chip import SUPPORTED_CHIPS
+from esp_gpio_tool_cli.chip import get_peripheral_instance_counts
+from esp_gpio_tool_cli.chip import get_pwm_output_capacity
 
 logging.basicConfig(level=logging.ERROR)
 logger = logging.getLogger(__name__)
@@ -84,7 +86,9 @@ async def find_chips(
                 'Required connectivity features. Each entry is checked against '
                 'connectivity.<name>.supported in chip features. '
                 'Examples: ["wifi", "bluetooth", "ieee_802154"]. '
-                'A chip matches only if ALL listed features have supported=true.'
+                'A chip matches only if ALL listed features have supported=true. '
+                'Omit this parameter (or pass null/empty) when the user did not ask for any radio '
+                '(WiFi/BT/802.15.4) — do NOT assume wireless unless it is required.'
             ),
         ),
     ] = None,
@@ -102,15 +106,45 @@ async def find_chips(
         int | None,
         Field(description='Minimum number of available GPIOs required.'),
     ] = None,
+    min_independent_pwm_outputs: Annotated[
+        int | None,
+        Field(
+            description=(
+                'Minimum number of independent on-chip PWM outputs (LEDC SIG_OUT + MCPWM OUT A/B). '
+                'Use for servo motor counts, dimmable channels, etc. '
+                'Example: 12 servos need min_independent_pwm_outputs=12 (unless using an external driver IC).'
+            ),
+        ),
+    ] = None,
+    min_peripheral_instances: Annotated[
+        dict[str, int] | None,
+        Field(
+            description=(
+                'Minimum number of independent peripheral *controllers* per type. Keys are peripheral names as in '
+                'chip YAML / get_chip_info (e.g. "SPI", "I2C", "UART", "RMT"). Values are required instance counts '
+                '(separate SPI masters, UART ports, etc.). Example: three unrelated SPI buses → {"SPI": 3}. '
+                'This does not count channels inside one block (e.g. LEDC PWM channels) — use '
+                'min_independent_pwm_outputs for that.'
+            ),
+        ),
+    ] = None,
 ) -> dict[str, Any]:
     """Find chips that match all specified requirements.
 
     Filters all supported chips by connectivity features, required peripherals,
-    and minimum GPIO count. Returns matching chips sorted by GPIO count (ascending,
+    minimum GPIO count, optional minimum independent PWM output count, and optional
+    minimum per-type peripheral instance counts (SPI controllers, UART ports, etc.).
+    Returns matching chips sorted by GPIO count (ascending,
     simplest first) with their features and peripheral names for comparison.
 
     Example: find_chips(connectivity=["wifi", "ieee_802154"], peripherals=["I2C"])
     returns only chips that have both WiFi and IEEE 802.15.4 radios plus an I2C peripheral.
+
+    Example: find_chips(min_independent_pwm_outputs=12) returns chips with at least 12 combined
+    LEDC+MCPWM PWM-style outputs (typical for 12 servos on-chip).
+
+    Example: find_chips(min_peripheral_instances={"SPI": 3}) returns chips with at least three
+    independent SPI controller instances (e.g. SPI/HSPI/VSPI or SPI/FSPI/SPI3 depending on chip).
     """
     results = []
     for chip_name in SUPPORTED_CHIPS:
@@ -139,6 +173,21 @@ async def find_chips(
 
             if min_gpios is not None and len(esp.gpios) < min_gpios:
                 continue
+
+            if min_independent_pwm_outputs is not None:
+                cap = get_pwm_output_capacity(esp)
+                if cap['max_independent_pwm_outputs'] < min_independent_pwm_outputs:
+                    continue
+
+            if min_peripheral_instances:
+                meets = True
+                for label, min_n in min_peripheral_instances.items():
+                    periph = esp.get_peripheral(label)
+                    if periph is None or len(periph.instances) < min_n:
+                        meets = False
+                        break
+                if not meets:
+                    continue
 
             results.append(_get_chip_info(chip_name))
         except Exception:
@@ -182,6 +231,8 @@ def _get_chip_info(chip: str, soc: str | None = None) -> dict[str, Any]:
         'features': esp.features,
         'total_gpios': len(esp.gpios),
         'available_gpios': [pin.pin for pin in esp.free_pins],
+        'pwm_output_capacity': get_pwm_output_capacity(esp),
+        'peripheral_instance_counts': get_peripheral_instance_counts(esp),
         'peripherals': [
             {
                 'name': p.name,
