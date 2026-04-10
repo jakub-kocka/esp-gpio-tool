@@ -22,6 +22,9 @@
 
 
     [project.optional-dependencies]
+        mcp = [
+            "mcp[cli]>=1.5.0",
+        ]
         dev = [
             "czespressif",
             "pandas[excel]~=2.2.2",
