@@ -154,6 +154,8 @@ class BasePeripheral:
         if instance not in self.instances:
             raise ValueError(f'Instance {instance} not found. Supported instances: {self.instances}')
         supported_modes = [str(i) for i in self.supported_modes.get(instance, [])]
+        if not supported_modes:
+            raise ValueError(f'Peripheral {self.name} {instance} does not support any modes.')
         mode = str(mode)
         if mode not in supported_modes:
             raise ValueError(
