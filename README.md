@@ -1,18 +1,4 @@
-<div align="center">
-    <h1>ESP GPIO Tool</h1>
-    <hr>
-    <!-- Gitlab Badges -->
-    <a href="https://gitlab.espressif.cn:6688/espressif/esp-gpio-tool/-/releases">
-        <img alt="Latest Release" src="https://gitlab.espressif.cn:6688/espressif/esp-gpio-tool/-/badges/release.svg" />
-    </a>
-    <a href="https://gitlab.espressif.cn:6688/espressif/esp-gpio-tool/-/pipelines?scope=all&ref=master">
-        <img alt="pipeline status" src="https://gitlab.espressif.cn:6688/espressif/esp-gpio-tool/badges/master/pipeline.svg?key_text=Master+Pipeline&key_width=100" />
-    </a>
-    <a href="https://gitlab.espressif.cn:6688/espressif/esp-gpio-tool/-/graphs/master/charts">
-        <img alt="coverage report" src="https://gitlab.espressif.cn:6688/espressif/esp-gpio-tool/badges/master/coverage.svg?key_text=Test+Coverage&key_width=100" />
-    </a>
-    <hr>
-</div>
+# ESP GPIO Tool
 
 **Welcome to the ESP GPIO Tool!**
 This repository is a Python-based, open-source package that is used for developing applications with Espressif's SoCs.
