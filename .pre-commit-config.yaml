@@ -4,6 +4,11 @@ minimum_pre_commit_version: 3.3.0                        # Specifies the minimum
 default_install_hook_types: [pre-commit,commit-msg]      # Default hook types to install if not specified in individual hooks
 default_stages: [pre-commit]
 
+ci:
+  autoupdate_commit_msg: 'ci: Updated pre-commit hooks'
+  autoupdate_schedule: 'quarterly'
+
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
