@@ -1,13 +1,16 @@
-# SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+# SPDX-FileCopyrightText: 2024-2026 Espressif Systems (Shanghai) CO LTD
 # SPDX-License-Identifier: Apache-2.0
+
+from typing import ClassVar
 
 
 class Logger:
     output: list[str]
+    instance: ClassVar['Logger | None'] = None
 
     def __new__(cls) -> 'Logger':
         """Singleton class to log messages"""
-        if not hasattr(cls, 'instance'):
+        if cls.instance is None:
             cls.instance = super().__new__(cls)
         return cls.instance
 
@@ -17,8 +20,7 @@ class Logger:
 
     @classmethod
     def _del(cls) -> None:
-        if hasattr(cls, 'instance'):
-            del cls.instance
+        cls.instance = None
 
     def use_unicode(self, value: bool) -> None:
         """Set whether to use Unicode characters in the output"""

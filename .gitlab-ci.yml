@@ -51,22 +51,13 @@ run-danger-mr-linter:
 pre-commit-mr:
   stage: pre-check
   needs: []
-  image: python:3.10-alpine3.18
+  image: python:3.10
   variables:
     SKIP: pip-compile
   before_script:
-    - apk add git
     - pip install pre-commit
   script:
-    - echo "Merge request is from ${CI_COMMIT_REF_NAME} into ${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}"
-    - git fetch origin ${CI_MERGE_REQUEST_TARGET_BRANCH_NAME} ${CI_COMMIT_REF_NAME}
-    - export from_sha=$(git merge-base HEAD origin/${CI_MERGE_REQUEST_TARGET_BRANCH_NAME})
-    - echo "Checking changes from ${from_sha} to ${CI_COMMIT_SHA}:"
-    - git log --oneline ${from_sha}..${CI_COMMIT_SHA}
-    - echo "Modified files:"
-    - git diff-tree --no-commit-id --name-only -r ${from_sha} ${CI_COMMIT_SHA}
-    - echo "Running pre-commit:"
-    - pre-commit run --from ${from_sha} --to ${CI_COMMIT_SHA}
+    - pre-commit run --all-files --show-diff-on-failure --color=always
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
   tags:
